@@ -259,8 +259,21 @@ function onKeydown(e) {
   state.lastVerdict = verdict;
   state.onKey?.(verdict, e);
   if (!verdict.fired) return;
-  e.preventDefault();
-  verdict.entry.run();
+
+  /* Run first, cancel second. The order is the whole contract: an entry that
+     returns false declines, and a declined key keeps its native effect.
+     Cancelling before the run made declining impossible, because the default
+     was already gone by the time the entry could look at anything: Space on a
+     focused button never activated it, Space on a long page never scrolled,
+     and a site that wanted one key passed through had to bolt a capture-phase
+     listener in front of the kit to stop the event ever arriving (rappel-site
+     still carries one). Every other return value, undefined included, cancels,
+     so nothing that was written before this existed changes behaviour.
+
+     run() is given the event so an entry can decide from the real target
+     rather than guessing from site state. */
+  const declined = verdict.entry.run(e) === false;
+  if (!declined) e.preventDefault();
 }
 
 /** Install the single document listener. Idempotent. */
