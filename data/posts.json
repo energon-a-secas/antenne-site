@@ -1,8 +1,284 @@
 {
   "version": 1,
   "site": "dispatch",
-  "updated": "2026-09-01",
+  "updated": "2026-09-11",
   "posts": [
+    {
+      "id": "2026-09-10-three-sites-one-way-to-sign-in",
+      "date": "2026-09-10",
+      "kind": "feature",
+      "site": null,
+      "title": "Three sites, one way to sign in",
+      "summary": "Meme Vault, BuyHacks and Character Sheet now share one sign-in: one Neorgon account, and one dialog in each site's name and colours. A signed-out visitor loads nothing from the sign-in service until that dialog opens.",
+      "body": [
+        "Each of the three used to wrap sign-in in its own panel and styles, and Meme Vault's opened a light form over a dark page. They now share one kit. Press Sign in and a dialog opens titled with the site's name and painted in its accent: rose on Meme Vault, amber on BuyHacks, blue on Character Sheet. On a laptop, focus starts in the form and Escape closes it; on a phone, the dialog rises from the bottom edge as a sheet.",
+        "The sign-in service also waits to be asked. Its code used to load for every visitor. Now a visitor who is not signed in anywhere on Neorgon makes no request to it until they press Sign in or try something that needs an account. Opening the form then fetches seven script files, 329 KB compressed.",
+        "Signed in, the account menu gains Your Neorgon sites: the sites this account has used, the first and last day on each, and a button to clear the list. Nothing about what you did there goes into it. That signed-in side has not yet been tried with a real account on the live sites; so far the list has only been shown with sample data. The privacy page now spells out what the list keeps and who can read it."
+      ],
+      "links": [
+        {
+          "label": "Open Meme Vault",
+          "url": "https://memes.neorgon.com/"
+        },
+        {
+          "label": "Open BuyHacks",
+          "url": "https://buyhacks.neorgon.com/"
+        },
+        {
+          "label": "Open Character Sheet",
+          "url": "https://charactersheet.neorgon.com/"
+        },
+        {
+          "label": "Read the privacy page",
+          "url": "https://neorgon.com/privacy/"
+        }
+      ],
+      "tags": [
+        "fleet",
+        "accounts",
+        "sign-in",
+        "privacy"
+      ]
+    },
+    {
+      "id": "2026-09-08-your-misses-become-a-deck",
+      "date": "2026-09-08",
+      "kind": "feature",
+      "site": "runcible-site",
+      "title": "What you miss today is a card tomorrow",
+      "summary": "Runcible turns every wrong answer in a Quiz round into a Rappel card, in a personal deck that appears on Today as soon as it has one.",
+      "body": [
+        "The evidence already travelled: Runcible records each answer a round produces. Now a miss also becomes a card, keyed so that missing the same item twice merges into one, and getting it right later never deletes it. Rappel's scheduler decides when it is learned, and the Book does not overrule it.",
+        "Under the hood a host can now hand Rappel a whole deck inside the frame instead of a file to fetch, and Rappel stores it only when the sender is a site it trusts. The deck lists in Rappel's library under its own heading, with the site that sent it and the date, and exports with the rest of the ledger."
+      ],
+      "links": [
+        {
+          "label": "Open Runcible",
+          "url": "https://runcible.neorgon.com/"
+        },
+        {
+          "label": "Open Rappel",
+          "url": "https://rappel.neorgon.com/"
+        }
+      ],
+      "tags": [
+        "runcible",
+        "rappel",
+        "quiz"
+      ]
+    },
+    {
+      "id": "2026-09-08-vitrina-and-bouquin-arrive",
+      "date": "2026-09-08",
+      "kind": "launch",
+      "site": null,
+      "title": "Two shelves arrive: Vitrina and Bouquin",
+      "summary": "Vitrina shows your science fiction paperbacks by their spines. Bouquin tracks the books r/suggestmeabook keeps recommending.",
+      "body": [
+        "Vitrina is a shelf you look at: the paperbacks stand by their spines, the way they do on the wall, and the collection narrows to Spanish-language science fiction.",
+        "Bouquin reads the other shelf: the books a subreddit keeps recommending, tracked over time so a title that comes up every week stands out from one that came up once."
+      ],
+      "links": [
+        {
+          "label": "Open Vitrina",
+          "url": "https://vitrina.neorgon.com/"
+        },
+        {
+          "label": "Open Bouquin",
+          "url": "https://bouquin.neorgon.com/"
+        }
+      ],
+      "tags": [
+        "launch",
+        "books"
+      ]
+    },
+    {
+      "id": "2026-09-08-the-japanese-book-grows-to-fourteen-chapters",
+      "date": "2026-09-08",
+      "kind": "feature",
+      "site": "runcible-site",
+      "title": "The Japanese Book grows to fourteen chapters",
+      "summary": "Six new chapters land in Runcible: the writing system, phrases by situation, graded reading, the rest of the grade-two kanji, register, and handwriting with a tracing pad.",
+      "body": [
+        "The writing-system chapter answers what beginners are rarely told: why three scripts coexist, when a word takes kana instead of its kanji, what the marks do, and what the 1946 reform changed. Short pages inside the older chapters say the same things where the fact first turns up, starting with the news that the songs are in classical Japanese.",
+        "The phrases chapter borrows the shape of a good language lesson, one situation at a time, and builds it from openly licensed dictionaries and sentences: greetings, introductions, the classroom, shopping, thanks and apologies, each with a round to pronounce, hear, match and build. Five more situations are named and waiting.",
+        "Graded reading opens four public-domain stories from Aozora Bunko, kanji continues through grade two with phonetic families and homophone shades, conversation teaches register, and handwriting traces strokes against KanjiVG. Five teachers reviewed the lot before it shipped, and the Piano Book got its first graded repertoire on the same day."
+      ],
+      "links": [
+        {
+          "label": "Open Runcible",
+          "url": "https://runcible.neorgon.com/"
+        }
+      ],
+      "tags": [
+        "runcible",
+        "japanese",
+        "content"
+      ]
+    },
+    {
+      "id": "2026-09-08-quiz-learns-rows-spanish-and-a-clock",
+      "date": "2026-09-08",
+      "kind": "feature",
+      "site": "quiz-site",
+      "title": "Quiz learns rows, Spanish, and an optional clock",
+      "summary": "A round can now be one row of a kana table or one group of words, every gloss reads in Spanish, and a clock is there for anyone who asks for it.",
+      "body": [
+        "A filter on the round narrows it to the k row or to the greetings while the strip and the distractors still draw from the whole table, which is what lets Runcible's row-by-row drills become rounds. The sound sets gained the yoon rows and the extended katakana, and every pair and song line has a Spanish gloss.",
+        "The clock is opt-in and honest: a thin bar drains and turns red only in its last second, a run-out counts as a miss that still says why, and a visible control turns it off mid-round and remembers that. An embedded round never times unless the host asks."
+      ],
+      "links": [
+        {
+          "label": "Open Quiz",
+          "url": "https://quiz.neorgon.com/"
+        }
+      ],
+      "tags": [
+        "quiz",
+        "japanese",
+        "accessibility"
+      ]
+    },
+    {
+      "id": "2026-09-07-three-learning-sites-open",
+      "date": "2026-09-07",
+      "kind": "launch",
+      "site": null,
+      "title": "Runcible, Rappel and Quiz open on the same afternoon",
+      "summary": "The three learning sites announced last week are live: a book that teaches back, a spaced repetition engine, and four small games that explain every miss.",
+      "body": [
+        "Runcible is the book. Its Japanese course reads as a spread, with a contents rail on the left, the prose in the middle and the drill on a facing page, and each chapter states what you will be able to do and gates itself on evidence rather than on time spent.",
+        "Rappel keeps the cards. It runs FSRS-6 in the browser, keeps the review ledger in your hands as a file, and embeds a deck in any site over one small message contract, which is how Runcible's chapters carry their decks.",
+        "Quiz is the small stuff: count the beats of a loanword, pick the sound of a kana, match the pairs, put a song line back in order. A wrong answer shows the split, the row, the pair or the line with the piece marked, so the miss is the lesson. Runcible embeds the rounds and records every answer as evidence for its goals."
+      ],
+      "links": [
+        {
+          "label": "Open Runcible",
+          "url": "https://runcible.neorgon.com/"
+        },
+        {
+          "label": "Open Rappel",
+          "url": "https://rappel.neorgon.com/"
+        },
+        {
+          "label": "Open Quiz",
+          "url": "https://quiz.neorgon.com/"
+        }
+      ],
+      "tags": [
+        "launch",
+        "learning",
+        "japanese"
+      ]
+    },
+    {
+      "id": "2026-09-07-a-declined-key-keeps-its-default",
+      "date": "2026-09-07",
+      "kind": "fix",
+      "site": null,
+      "title": "Space scrolls again on every keyboard-kit site",
+      "summary": "The shared keys kit cancelled a bound key before asking whether the site wanted it, so Space could not scroll a page or press a focused button. It asks first now.",
+      "body": [
+        "Every site that vendors the keys kit picked up the fix in one sync: an entry runs first and only a plain refusal keeps the browser's own behaviour, so a focused button still activates and a long page still scrolls. Smoke now checks the vendored copies, so a stale one cannot hide."
+      ],
+      "links": [],
+      "tags": [
+        "fleet",
+        "accessibility",
+        "keys"
+      ]
+    },
+    {
+      "id": "2026-09-05-mosaic-crops-and-turns-cleanly",
+      "date": "2026-09-05",
+      "kind": "feature",
+      "site": "mosaic-site",
+      "title": "Mosaic crops, and turns without leaking the background",
+      "summary": "The editor gains a crop, and a rotated tile no longer shows the canvas behind it.",
+      "body": [
+        "Crop a source before it becomes tiles, and rotate one without the ground showing through the corners. Two small things a photo tool should have had from the start."
+      ],
+      "links": [
+        {
+          "label": "Open Mosaic",
+          "url": "https://mosaic.neorgon.com/"
+        }
+      ],
+      "tags": [
+        "mosaic",
+        "editor"
+      ]
+    },
+    {
+      "id": "2026-09-05-every-site-is-installable-again",
+      "date": "2026-09-05",
+      "kind": "fix",
+      "site": null,
+      "title": "Every site is installable again",
+      "summary": "The web manifests gained a start URL and a scope, so the browser's install prompt works fleet-wide, and the header mark was re-stamped on the way.",
+      "body": [
+        "A manifest without a start URL and a scope is a manifest a browser will not install from. The fleet's got both in one pass, and a checker now reads every precache list so the next omission is caught before it ships."
+      ],
+      "links": [],
+      "tags": [
+        "fleet",
+        "pwa"
+      ]
+    },
+    {
+      "id": "2026-09-04-three-more-on-the-way",
+      "date": "2026-09-04",
+      "kind": "note",
+      "site": null,
+      "title": "Three more on the way: Runcible, Rappel and Quiz",
+      "summary": "Three learning tools are registered and being built. Runcible teaches a subject chapter by chapter, Rappel drills flashcards with spaced repetition, and Quiz is small games that teach one thing at a time. None is open yet.",
+      "body": [
+        "They are deliberately three tools rather than one. Runcible is the book: graded chapters with drills, and progress that follows you. Rappel is the drilling underneath it, spaced repetition you can also embed in any other site. Quiz is the short form, one idea per round, count the beats or match the pairs.",
+        "All three are registered with their domains reserved and nothing served yet. This is a note, not a launch: when they open, they get their own stories."
+      ],
+      "links": [],
+      "tags": [
+        "coming-soon",
+        "learning"
+      ]
+    },
+    {
+      "id": "2026-09-01-the-dash-hunt-learns-to-read-code",
+      "date": "2026-09-01",
+      "kind": "fix",
+      "site": null,
+      "title": "The dash hunt learns to read code",
+      "summary": "The tool that keeps a certain punctuation mark out of the fleet's writing now understands JavaScript well enough to tell a comment from a string, including inside nested template literals.",
+      "body": [
+        "There is a house rule against one particular dash. Enforcing it in prose is easy. Enforcing it in code meant telling apart the places where it is copy a reader sees from the places where it is a comment or, worse, part of a regular expression that would break if touched.",
+        "The checker now walks the file properly and keeps a stack for template literals, so a dash inside a nested interpolation is found and a dash inside a character class is left alone. Pedantic, and it is the difference between a rule that runs everywhere and one that runs only on Markdown."
+      ],
+      "links": [],
+      "tags": [
+        "quality",
+        "writing",
+        "tooling"
+      ]
+    },
+    {
+      "id": "2026-09-01-one-set-of-keys",
+      "date": "2026-09-01",
+      "kind": "feature",
+      "site": null,
+      "title": "One set of keyboard shortcuts, everywhere",
+      "summary": "Press ? on any Neorgon site and the same help sheet appears, built from that site's own list of shortcuts. 53 sites now share it, and every single-key binding can be switched off or remapped.",
+      "body": [
+        "Shortcuts used to be written per site, which meant the same key did different things depending on where you were, and the help sheet drifted from the keys that actually worked. They are now declared as data in one shared kit: the ? sheet is generated from that list, so it cannot describe a key the site does not have.",
+        "The part that mattered most is the least visible. A bare letter as a shortcut is an accessibility failure if you cannot turn it off, because anyone using speech input types letters constantly. The disable switch and the remap panel ship with the kit or the kit does not ship."
+      ],
+      "links": [],
+      "tags": [
+        "keyboard",
+        "accessibility",
+        "fleet"
+      ]
+    },
     {
       "id": "2026-09-01-aficion-learns-your-ties",
       "date": "2026-09-01",

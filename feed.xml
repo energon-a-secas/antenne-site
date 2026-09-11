@@ -6,7 +6,103 @@
     <atom:link href="https://dispatch.neorgon.com/feed.xml" rel="self" type="application/rss+xml"/>
     <description>Launches, features, and fixes across the Neorgon fleet, approved at the desk before publishing</description>
     <language>en</language>
-    <lastBuildDate>Tue, 01 Sep 2026 22:06:01 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 11 Sep 2026 12:04:38 +0000</lastBuildDate>
+    <item>
+      <title>Three sites, one way to sign in</title>
+      <link>https://dispatch.neorgon.com/#p=2026-09-10-three-sites-one-way-to-sign-in</link>
+      <guid isPermaLink="false">2026-09-10-three-sites-one-way-to-sign-in</guid>
+      <pubDate>Thu, 10 Sep 2026 12:00:00 +0000</pubDate>
+      <category>feature</category>
+      <description>Meme Vault, BuyHacks and Character Sheet now share one sign-in: one Neorgon account, and one dialog in each site's name and colours. A signed-out visitor loads nothing from the sign-in service until that dialog opens.</description>
+    </item>
+    <item>
+      <title>What you miss today is a card tomorrow</title>
+      <link>https://dispatch.neorgon.com/#p=2026-09-08-your-misses-become-a-deck</link>
+      <guid isPermaLink="false">2026-09-08-your-misses-become-a-deck</guid>
+      <pubDate>Tue, 08 Sep 2026 12:00:00 +0000</pubDate>
+      <category>feature</category>
+      <description>Runcible turns every wrong answer in a Quiz round into a Rappel card, in a personal deck that appears on Today as soon as it has one.</description>
+    </item>
+    <item>
+      <title>Two shelves arrive: Vitrina and Bouquin</title>
+      <link>https://dispatch.neorgon.com/#p=2026-09-08-vitrina-and-bouquin-arrive</link>
+      <guid isPermaLink="false">2026-09-08-vitrina-and-bouquin-arrive</guid>
+      <pubDate>Tue, 08 Sep 2026 12:00:00 +0000</pubDate>
+      <category>launch</category>
+      <description>Vitrina shows your science fiction paperbacks by their spines. Bouquin tracks the books r/suggestmeabook keeps recommending.</description>
+    </item>
+    <item>
+      <title>The Japanese Book grows to fourteen chapters</title>
+      <link>https://dispatch.neorgon.com/#p=2026-09-08-the-japanese-book-grows-to-fourteen-chapters</link>
+      <guid isPermaLink="false">2026-09-08-the-japanese-book-grows-to-fourteen-chapters</guid>
+      <pubDate>Tue, 08 Sep 2026 12:00:00 +0000</pubDate>
+      <category>feature</category>
+      <description>Six new chapters land in Runcible: the writing system, phrases by situation, graded reading, the rest of the grade-two kanji, register, and handwriting with a tracing pad.</description>
+    </item>
+    <item>
+      <title>Quiz learns rows, Spanish, and an optional clock</title>
+      <link>https://dispatch.neorgon.com/#p=2026-09-08-quiz-learns-rows-spanish-and-a-clock</link>
+      <guid isPermaLink="false">2026-09-08-quiz-learns-rows-spanish-and-a-clock</guid>
+      <pubDate>Tue, 08 Sep 2026 12:00:00 +0000</pubDate>
+      <category>feature</category>
+      <description>A round can now be one row of a kana table or one group of words, every gloss reads in Spanish, and a clock is there for anyone who asks for it.</description>
+    </item>
+    <item>
+      <title>Runcible, Rappel and Quiz open on the same afternoon</title>
+      <link>https://dispatch.neorgon.com/#p=2026-09-07-three-learning-sites-open</link>
+      <guid isPermaLink="false">2026-09-07-three-learning-sites-open</guid>
+      <pubDate>Mon, 07 Sep 2026 12:00:00 +0000</pubDate>
+      <category>launch</category>
+      <description>The three learning sites announced last week are live: a book that teaches back, a spaced repetition engine, and four small games that explain every miss.</description>
+    </item>
+    <item>
+      <title>Space scrolls again on every keyboard-kit site</title>
+      <link>https://dispatch.neorgon.com/#p=2026-09-07-a-declined-key-keeps-its-default</link>
+      <guid isPermaLink="false">2026-09-07-a-declined-key-keeps-its-default</guid>
+      <pubDate>Mon, 07 Sep 2026 12:00:00 +0000</pubDate>
+      <category>fix</category>
+      <description>The shared keys kit cancelled a bound key before asking whether the site wanted it, so Space could not scroll a page or press a focused button. It asks first now.</description>
+    </item>
+    <item>
+      <title>Mosaic crops, and turns without leaking the background</title>
+      <link>https://dispatch.neorgon.com/#p=2026-09-05-mosaic-crops-and-turns-cleanly</link>
+      <guid isPermaLink="false">2026-09-05-mosaic-crops-and-turns-cleanly</guid>
+      <pubDate>Sat, 05 Sep 2026 12:00:00 +0000</pubDate>
+      <category>feature</category>
+      <description>The editor gains a crop, and a rotated tile no longer shows the canvas behind it.</description>
+    </item>
+    <item>
+      <title>Every site is installable again</title>
+      <link>https://dispatch.neorgon.com/#p=2026-09-05-every-site-is-installable-again</link>
+      <guid isPermaLink="false">2026-09-05-every-site-is-installable-again</guid>
+      <pubDate>Sat, 05 Sep 2026 12:00:00 +0000</pubDate>
+      <category>fix</category>
+      <description>The web manifests gained a start URL and a scope, so the browser's install prompt works fleet-wide, and the header mark was re-stamped on the way.</description>
+    </item>
+    <item>
+      <title>Three more on the way: Runcible, Rappel and Quiz</title>
+      <link>https://dispatch.neorgon.com/#p=2026-09-04-three-more-on-the-way</link>
+      <guid isPermaLink="false">2026-09-04-three-more-on-the-way</guid>
+      <pubDate>Fri, 04 Sep 2026 12:00:00 +0000</pubDate>
+      <category>note</category>
+      <description>Three learning tools are registered and being built. Runcible teaches a subject chapter by chapter, Rappel drills flashcards with spaced repetition, and Quiz is small games that teach one thing at a time. None is open yet.</description>
+    </item>
+    <item>
+      <title>The dash hunt learns to read code</title>
+      <link>https://dispatch.neorgon.com/#p=2026-09-01-the-dash-hunt-learns-to-read-code</link>
+      <guid isPermaLink="false">2026-09-01-the-dash-hunt-learns-to-read-code</guid>
+      <pubDate>Tue, 01 Sep 2026 12:00:00 +0000</pubDate>
+      <category>fix</category>
+      <description>The tool that keeps a certain punctuation mark out of the fleet's writing now understands JavaScript well enough to tell a comment from a string, including inside nested template literals.</description>
+    </item>
+    <item>
+      <title>One set of keyboard shortcuts, everywhere</title>
+      <link>https://dispatch.neorgon.com/#p=2026-09-01-one-set-of-keys</link>
+      <guid isPermaLink="false">2026-09-01-one-set-of-keys</guid>
+      <pubDate>Tue, 01 Sep 2026 12:00:00 +0000</pubDate>
+      <category>feature</category>
+      <description>Press ? on any Neorgon site and the same help sheet appears, built from that site's own list of shortcuts. 53 sites now share it, and every single-key binding can be switched off or remapped.</description>
+    </item>
     <item>
       <title>Aficion learns your ties</title>
       <link>https://dispatch.neorgon.com/#p=2026-09-01-aficion-learns-your-ties</link>
@@ -70,86 +166,6 @@
       <pubDate>Wed, 26 Aug 2026 12:00:00 +0000</pubDate>
       <category>note</category>
       <description>Gambit is now Gamme, Stake is Enjeu, TickBox is Carnet, Rigcheck is Cadrage. One live domain moved, and the old one redirects.</description>
-    </item>
-    <item>
-      <title>Dispatch is live</title>
-      <link>https://dispatch.neorgon.com/#p=2026-08-26-dispatch-is-live</link>
-      <guid isPermaLink="false">2026-08-26-dispatch-is-live</guid>
-      <pubDate>Wed, 26 Aug 2026 12:00:00 +0000</pubDate>
-      <category>launch</category>
-      <description>The fleet gets a front page. Launches, features, and fixes land here as short stories, each one approved at the desk before it ships.</description>
-    </item>
-    <item>
-      <title>Stake deals itself in</title>
-      <link>https://dispatch.neorgon.com/#p=2026-08-25-stake-deals-itself-in</link>
-      <guid isPermaLink="false">2026-08-25-stake-deals-itself-in</guid>
-      <pubDate>Tue, 25 Aug 2026 12:00:00 +0000</pubDate>
-      <category>note</category>
-      <description>The print-and-play boss rush for one player, one die, and the bricks you own is now a registered fleet site. Rules, printable cards, an on-screen runner, and a balance simulator are on the way to stake.neorgon.com.</description>
-    </item>
-    <item>
-      <title>The Header Kit counts arrivals right again</title>
-      <link>https://dispatch.neorgon.com/#p=2026-08-24-header-kit-arrival-fix</link>
-      <guid isPermaLink="false">2026-08-24-header-kit-arrival-fix</guid>
-      <pubDate>Mon, 24 Aug 2026 12:00:00 +0000</pubDate>
-      <category>fix</category>
-      <description>The shared header's arrival pattern now counts #s= hashes, so deep links into a site register the way plain visits do.</description>
-    </item>
-    <item>
-      <title>Pixeldoll joins the fleet</title>
-      <link>https://dispatch.neorgon.com/#p=2026-08-21-pixeldoll-joins-the-fleet</link>
-      <guid isPermaLink="false">2026-08-21-pixeldoll-joins-the-fleet</guid>
-      <pubDate>Fri, 21 Aug 2026 12:00:00 +0000</pubDate>
-      <category>launch</category>
-      <description>Build a 16x16 pixel character in the browser, then meet it again in Floorplan: the my-character cookie carries your doll across the fleet.</description>
-    </item>
-    <item>
-      <title>One tiny pixel person, every site</title>
-      <link>https://dispatch.neorgon.com/#p=2026-08-21-one-tiny-pixel-person</link>
-      <guid isPermaLink="false">2026-08-21-one-tiny-pixel-person</guid>
-      <pubDate>Fri, 21 Aug 2026 12:00:00 +0000</pubDate>
-      <category>feature</category>
-      <description>The Neorgon Avatar Kit lands: 16x16 characters with tiers, share codes, and a fleet-wide cookie, vendored to sites the same way the header and footer kits are.</description>
-    </item>
-    <item>
-      <title>Fleet avatars learn to walk</title>
-      <link>https://dispatch.neorgon.com/#p=2026-08-21-avatars-learn-to-walk</link>
-      <guid isPermaLink="false">2026-08-21-avatars-learn-to-walk</guid>
-      <pubDate>Fri, 21 Aug 2026 12:00:00 +0000</pubDate>
-      <category>feature</category>
-      <description>The Avatar Kit gains three walk frames, and Floorplan's Sim mode uses them to send little people strolling around your team map.</description>
-    </item>
-    <item>
-      <title>Slides learns to check its own exports</title>
-      <link>https://dispatch.neorgon.com/#p=2026-08-20-decks-that-argue</link>
-      <guid isPermaLink="false">2026-08-20-decks-that-argue</guid>
-      <pubDate>Thu, 20 Aug 2026 12:00:00 +0000</pubDate>
-      <category>feature</category>
-      <description>Exporting a deck now produces a receipt showing what actually made it into the file, plus a contrast check on brand colour pairs and a measured fit rather than a guess.</description>
-    </item>
-    <item>
-      <title>The hub learns to forget</title>
-      <link>https://dispatch.neorgon.com/#p=2026-08-19-the-hub-learns-to-forget</link>
-      <guid isPermaLink="false">2026-08-19-the-hub-learns-to-forget</guid>
-      <pubDate>Wed, 19 Aug 2026 12:00:00 +0000</pubDate>
-      <category>feature</category>
-      <description>The hub now archives tools it has superseded and keeps reference material out of the What is New surfaces, so the front page shows what actually changed rather than everything that exists.</description>
-    </item>
-    <item>
-      <title>The fleet grows a safety net</title>
-      <link>https://dispatch.neorgon.com/#p=2026-08-18-the-fleet-grows-a-safety-net</link>
-      <guid isPermaLink="false">2026-08-18-the-fleet-grows-a-safety-net</guid>
-      <pubDate>Tue, 18 Aug 2026 12:00:00 +0000</pubDate>
-      <category>note</category>
-      <description>Every site now ships a 404 page, adopts a shared ignore base, and gets checked by a suite that runs in CI. The interesting part is which checks were added, because each one exists because something slipped through.</description>
-    </item>
-    <item>
-      <title>Mosaic joins the fleet</title>
-      <link>https://dispatch.neorgon.com/#p=2026-08-17-mosaic-joins-the-fleet</link>
-      <guid isPermaLink="false">2026-08-17-mosaic-joins-the-fleet</guid>
-      <pubDate>Mon, 17 Aug 2026 12:00:00 +0000</pubDate>
-      <category>launch</category>
-      <description>Mosaic builds photo collages that stay editable. Change the grid, the shape or the column count whenever you like, and the photos you already placed stay where they are.</description>
     </item>
   </channel>
 </rss>
