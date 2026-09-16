@@ -10,7 +10,8 @@ help:
 	@echo "  make kill          Kill this project's HTTP server"
 	@echo "  make feed          Validate posts.json, regenerate feed.xml, stamp the feed into index.html"
 	@echo "  make check         Validate posts.json and that the stamped feed is current"
-	@echo "  make drafts-clean  Delete consumed drafts (data/drafts/)"
+	@echo "  make validate      Run every test, then build-feed.py --check and --selftest (plain node and python3, no install)"
+	@echo "  make test          Same as make validate"
 	@echo ""
 
 # ── Dev server ────────────────────────────────────────────────────────────────
@@ -34,9 +35,18 @@ feed:
 check:
 	@python3 scripts/build-feed.py --check
 
-# ── Drafts ────────────────────────────────────────────────────────────────────
-# data/drafts/ is gitignored: the /newsroom command writes candidates there and
-# the desk consumes them. Clean up after a publish.
-.PHONY: drafts-clean
-drafts-clean:
-	@rm -rf data/drafts && echo "data/drafts/ removed"
+# ── Validate ──────────────────────────────────────────────────────────────────
+# Plain node tests/<name>.test.mjs and python3 tests/test_<name>.py scripts, one
+# line each, no install. The .github/workflows/check.yml job runs this target.
+.PHONY: validate test
+validate:
+	@node tests/post-mirror.test.mjs
+	@node tests/convex-access.test.mjs
+	@node tests/convex-drafts.test.mjs
+	@node tests/convex-members.test.mjs
+	@node tests/convex-contract.test.mjs
+	@python3 tests/test_build_feed.py
+	@python3 scripts/build-feed.py --check
+	@python3 scripts/build-feed.py --selftest
+
+test: validate

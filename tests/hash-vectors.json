@@ -1,0 +1,173 @@
+{
+  "version": 1,
+  "about": "contentHash: lowercase hex SHA-256 of the UTF-8 bytes of the value serialized with keys sorted by code point, recursively, and no whitespace (Python json.dumps(value, sort_keys=True, separators=(\",\", \":\"), ensure_ascii=False)). A vector with error: true must be refused: a lone surrogate, a non-integer, or an integer past 2^53 - 1.",
+  "vectors": [
+    {
+      "name": "the base story, normalized",
+      "value": {
+        "id": "2026-09-10-base-story",
+        "date": "2026-09-10",
+        "kind": "feature",
+        "site": "dispatch-site",
+        "title": "A story for the vectors",
+        "summary": "One sentence that says what changed.",
+        "body": [
+          "A first paragraph.",
+          "A second paragraph."
+        ],
+        "links": [
+          {
+            "label": "Antenne",
+            "url": "https://dispatch.neorgon.com/"
+          }
+        ],
+        "tags": [
+          "fleet",
+          "vectors"
+        ]
+      },
+      "canonical": "{\"body\":[\"A first paragraph.\",\"A second paragraph.\"],\"date\":\"2026-09-10\",\"id\":\"2026-09-10-base-story\",\"kind\":\"feature\",\"links\":[{\"label\":\"Antenne\",\"url\":\"https://dispatch.neorgon.com/\"}],\"site\":\"dispatch-site\",\"summary\":\"One sentence that says what changed.\",\"tags\":[\"fleet\",\"vectors\"],\"title\":\"A story for the vectors\"}",
+      "sha256": "c6c42cec60b460d03e955716ed1e350ff1223738936b81689cdbe75cb790172e"
+    },
+    {
+      "name": "a fleet-wide story with nothing optional",
+      "value": {
+        "id": "2026-09-10-bare",
+        "date": "2026-09-10",
+        "kind": "note",
+        "site": null,
+        "title": "Bare",
+        "summary": "Nothing else.",
+        "body": [],
+        "links": [],
+        "tags": []
+      },
+      "canonical": "{\"body\":[],\"date\":\"2026-09-10\",\"id\":\"2026-09-10-bare\",\"kind\":\"note\",\"links\":[],\"site\":null,\"summary\":\"Nothing else.\",\"tags\":[],\"title\":\"Bare\"}",
+      "sha256": "30dd5bd65bd4cd9d72c6265ce77e9a602606e799ac85200c868c544c220c6c31"
+    },
+    {
+      "name": "the same story with its keys in reverse order",
+      "value": {
+        "tags": [],
+        "links": [],
+        "body": [],
+        "summary": "Nothing else.",
+        "title": "Bare",
+        "site": null,
+        "kind": "note",
+        "date": "2026-09-10",
+        "id": "2026-09-10-bare"
+      },
+      "canonical": "{\"body\":[],\"date\":\"2026-09-10\",\"id\":\"2026-09-10-bare\",\"kind\":\"note\",\"links\":[],\"site\":null,\"summary\":\"Nothing else.\",\"tags\":[],\"title\":\"Bare\"}",
+      "sha256": "30dd5bd65bd4cd9d72c6265ce77e9a602606e799ac85200c868c544c220c6c31"
+    },
+    {
+      "name": "text that needs escaping",
+      "value": {
+        "title": "He said \"hi\" \\ path/to",
+        "body": [
+          "line one\nline two",
+          "tab\there",
+          "bell\u0007",
+          "del\u007f",
+          "nel\u0085",
+          "ls\u2028ps\u2029"
+        ]
+      },
+      "canonical": "{\"body\":[\"line one\\nline two\",\"tab\\there\",\"bell\\u0007\",\"del\u007f\",\"nel\u0085\",\"ls\u2028ps\u2029\"],\"title\":\"He said \\\"hi\\\" \\\\ path/to\"}",
+      "sha256": "d3454713a28e4361c9081fdf17f335aea690ff31db32323b6a4fa08d71ef806e"
+    },
+    {
+      "name": "non-ASCII text as UTF-8",
+      "value": {
+        "title": "Caf\u00e9 \u65e5\u672c \ud83d\ude00"
+      },
+      "canonical": "{\"title\":\"Caf\u00e9 \u65e5\u672c \ud83d\ude00\"}",
+      "sha256": "dd811ac0b7308871ba662ff098c8c88519de6fea1bffa19de3a34dbe4f3f1769"
+    },
+    {
+      "name": "nested keys sort recursively",
+      "value": {
+        "b": {
+          "d": 1,
+          "c": [
+            true,
+            false,
+            null
+          ]
+        },
+        "a": "x",
+        "A": "y",
+        "_": 0,
+        "aa": -5
+      },
+      "canonical": "{\"A\":\"y\",\"_\":0,\"a\":\"x\",\"aa\":-5,\"b\":{\"c\":[true,false,null],\"d\":1}}",
+      "sha256": "2bb28c731ec4a94ac8c5087c848ec212670c60489d6998efe62441622dbb1cae"
+    },
+    {
+      "name": "keys sort by code point, not by UTF-16 unit",
+      "value": {
+        "\uffff": 1,
+        "\ud83d\ude00": 2,
+        "\u00e9": 3,
+        "z": 4
+      },
+      "canonical": "{\"z\":4,\"\u00e9\":3,\"\uffff\":1,\"\ud83d\ude00\":2}",
+      "sha256": "716beb059668cb2b44d43e9cb549f527b9dc8e167d08ce62cde35c37b4c17f34"
+    },
+    {
+      "name": "empty containers",
+      "value": {
+        "o": {},
+        "a": [],
+        "s": ""
+      },
+      "canonical": "{\"a\":[],\"o\":{},\"s\":\"\"}",
+      "sha256": "c127f9b3c6f4233b3976f8e2d54486ab15f9a46cfa50fc14ae6d0787d1ac2917"
+    },
+    {
+      "name": "the largest safe integers",
+      "value": {
+        "max": 9007199254740991,
+        "min": -9007199254740991,
+        "zero": 0
+      },
+      "canonical": "{\"max\":9007199254740991,\"min\":-9007199254740991,\"zero\":0}",
+      "sha256": "b7b2401ddca2165824e98c61890c0aaec470258d3119dd265d02be9438bf47e6"
+    },
+    {
+      "name": "a bare string",
+      "value": "plain",
+      "canonical": "\"plain\"",
+      "sha256": "945603a8f587786b463c3f94fce115c0fae88fac2728cc96ddf5981cf7f61741"
+    },
+    {
+      "name": "null",
+      "value": null,
+      "canonical": "null",
+      "sha256": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
+    },
+    {
+      "name": "a lone high surrogate",
+      "value": "x\ud800",
+      "error": true
+    },
+    {
+      "name": "a lone low surrogate as a key",
+      "value": {
+        "\udc00": 1
+      },
+      "error": true
+    },
+    {
+      "name": "a fraction",
+      "value": 1.5,
+      "error": true
+    },
+    {
+      "name": "one past the safe integer range",
+      "value": 9007199254740992,
+      "error": true
+    }
+  ]
+}

@@ -1,9 +1,13 @@
-// ── Post loading + validation ────────────────────────────────
-// One schema for published posts and desk drafts. The desk imports
-// normalizePost so a draft that survives the desk is by construction
-// a valid feed entry.
+// ── Post loading ─────────────────────────────────────────────
+// The feed's normalizePost is js/schema.js in read mode: today's lenient
+// rules (drop a post without an id, title, date and kind; filter bad links
+// and empty strings), so a visitor never loses a story the stricter modes
+// would accept. The desk and the publishing checks use the stricter modes.
 
-export const KINDS = ['launch', 'feature', 'fix', 'note'];
+import { KINDS, validatePost } from './schema.js';
+
+export { KINDS };
+
 export const KIND_LABELS = {
   launch: 'Launch',
   feature: 'Feature',
@@ -11,45 +15,12 @@ export const KIND_LABELS = {
   note: 'Note',
 };
 
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-// Ids go unencoded into #p= links, element ids, and RSS guids, so they are
-// valid by construction rather than escaped at every use site.
-const ID_RE = /^[a-z0-9-]+$/;
-
 /**
  * Coerce one raw post into the canonical shape, or return null if it
  * is missing the required fields (id, title, valid date, valid kind).
  */
 export function normalizePost(raw) {
-  if (!raw || typeof raw !== 'object') return null;
-  const id = typeof raw.id === 'string' ? raw.id.trim() : '';
-  const title = typeof raw.title === 'string' ? raw.title.trim() : '';
-  const date = typeof raw.date === 'string' ? raw.date.trim() : '';
-  const kind = KINDS.includes(raw.kind) ? raw.kind : null;
-  if (!ID_RE.test(id) || !title || !DATE_RE.test(date) || !kind) return null;
-
-  const body = Array.isArray(raw.body)
-    ? raw.body.filter((p) => typeof p === 'string' && p.trim()).map((p) => p.trim())
-    : [];
-  const links = Array.isArray(raw.links)
-    ? raw.links.filter((l) => l && typeof l.label === 'string' && typeof l.url === 'string'
-        && /^https?:\/\//.test(l.url))
-    : [];
-  const tags = Array.isArray(raw.tags)
-    ? raw.tags.filter((t) => typeof t === 'string' && t.trim()).map((t) => t.trim())
-    : [];
-
-  return {
-    id,
-    date,
-    kind,
-    site: typeof raw.site === 'string' && raw.site.trim() ? raw.site.trim() : null,
-    title,
-    summary: typeof raw.summary === 'string' ? raw.summary.trim() : '',
-    body,
-    links,
-    tags,
-  };
+  return validatePost(raw, { mode: 'read' }).post;
 }
 
 /** Normalize a whole document: drop invalid posts, sort newest first. */

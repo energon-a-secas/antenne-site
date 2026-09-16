@@ -1,0 +1,12 @@
+{
+  "name": "dispatch-site",
+  "private": true,
+  "type": "module",
+  "description": "Exists only for the Convex toolchain that deploys convex/. The site itself has no build step: pages are static HTML, scripts/build-feed.py builds the feed, and the desk loads the Convex client from a pinned jsDelivr URL.",
+  "scripts": {
+    "deploy": "convex deploy"
+  },
+  "dependencies": {
+    "convex": "1.45.0"
+  }
+}
