@@ -68,6 +68,7 @@ an embeddable strip for the hub's corner popup and an RSS feed.
         (gitignored)                            ▼
                                           data/posts.json  ──▶  make feed
                                           (committed)           feed.xml
+                                                                index.html
 ```
 
 Drafts never reach the repo; only approved stories do. On the public site,
@@ -84,6 +85,24 @@ until they were copied across by hand. Wording alone cannot stop that, so
 (`tests/desk-publish.test.mjs` covers the desk end, `tests/test_build_feed.py`
 the other).
 
+**The page fetches nothing: `make feed` stamps the archive into `index.html`.**
+Four `<!-- gen:NAME -->` regions are filled at publish time, three of them
+rendered (`edition`, `chips`, `feed`) and one the archive itself (`archive`, a
+`application/json` block holding the same object as `data/posts.json`). The page
+reads that block instead of fetching, so the visitor's own context (NEW markers,
+an open `#p=` story, the edition line) lands in the first render rather than a
+round trip later: queue #43 was that context popping in over an already-painted
+page. `make check` fails while any region is stale, which is what makes the copy
+safe. Two rules the stamp depends on: every `<` in the archive is written as
+`\u003c` so no story can end the script element it sits in, and the `gen:archive`
+markers sit *outside* that element, because a script's content is raw text and a
+marker inside it would be part of the JSON the page parses.
+
+The edition line is dated by the archive's own `updated` field, not by the
+visitor's clock. `scripts/build-feed.py` `edition_line` and `js/render.js`
+`editionLine` render the same string from it, and they have to agree or the date
+changes once the page loads.
+
 ---
 
 ## Running locally
@@ -92,8 +111,8 @@ ES modules require an HTTP server (not `file://`):
 
 ```bash
 make serve        # http://localhost:8873
-make feed         # validate posts.json, regenerate feed.xml, stamp the feed into index.html
-make check        # fail if the stamped feed is stale against posts.json
+make feed         # validate posts.json, regenerate feed.xml, stamp the feed and the archive into index.html
+make check        # fail if either stamp is stale against posts.json
 make drafts-clean # delete consumed drafts
 ```
 
@@ -118,7 +137,7 @@ dispatch-site/
 ├── js/
 │   ├── app.js          # Entry point, embed detection
 │   ├── state.js        # Prefs + read watermark, storage-free in embed mode
-│   ├── data.js         # Post schema: normalize, validate, fetch
+│   ├── data.js         # Post schema: normalize, validate, read the stamped archive
 │   ├── render.js       # Feed cards + embed strip (desk reuses renderCard)
 │   ├── events.js       # Filters, search, keyboard, chrome toggle
 │   ├── desk.js         # Draft loading, overlay state, publish

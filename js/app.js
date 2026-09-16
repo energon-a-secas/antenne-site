@@ -2,17 +2,22 @@
 // Wires the modules together. Keep under 50 lines.
 
 import { state, loadSaved, save } from './state.js';
-import { loadPosts } from './data.js';
+import { loadArchive } from './data.js';
 import { render } from './render.js';
 import { bindEvents, openFromHash } from './events.js';
 import { init as initKeys } from './neokeys/index.js';
 
-async function init() {
+// Synchronous from parse to paint (queue #43): the archive is stamped into the
+// page, so there is no fetch and no await before render, and nothing the
+// visitor sees changes after they see it.
+function init() {
   loadSaved(state);
   if (state.embed) document.body.classList.add('is-embed');
 
   try {
-    state.posts = await loadPosts();
+    const archive = loadArchive();
+    state.posts = archive.posts;
+    state.updated = archive.updated;
   } catch {
     state.error = true;
   }

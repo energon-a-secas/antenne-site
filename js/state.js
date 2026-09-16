@@ -16,7 +16,8 @@ function embedLimit() {
 
 export const state = {
   posts: [],        // published posts, newest first (data.js normalizes)
-  error: false,     // posts.json failed to load
+  updated: null,    // the archive's own publish date, dates the edition line
+  error: false,     // the stamped archive failed to parse
   filter: 'all',    // all | launch | feature | fix | note
   query: '',
   openId: null,     // id of the expanded story, one at a time

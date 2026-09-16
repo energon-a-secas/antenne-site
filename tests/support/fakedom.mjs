@@ -62,6 +62,8 @@ export function installDom() {
 
   return {
     clicked,
+    /** Register an element the module under test will look up by id. */
+    put(id, el) { byId.set(id, el); return el; },
     /** What the toast region currently reads, '' when nothing has been said. */
     toastText() {
       const el = byId.get('app-toast');

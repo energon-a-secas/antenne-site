@@ -2,19 +2,17 @@
 // Rebuilds the feed (or the embed strip) from state. renderCard is
 // also imported by the desk for live draft previews.
 
-import { escHtml, $, fmtDate } from './utils.js';
+import { escHtml, $, fmtDate, longDate } from './utils.js';
 import { KIND_LABELS } from './data.js';
 
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
-  'August', 'September', 'October', 'November', 'December'];
-
-// scripts/build-feed.py mirrors this line for the publish-time stamp
-// (dated by posts.json's updated field); change them together.
-function editionLine(posts) {
-  const now = new Date();
-  const today = MONTHS[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
+// scripts/build-feed.py edition_line mirrors this, dated by the archive's own
+// updated field; change them together. It used to read the visitor's clock,
+// which made the stamped line and the rendered line disagree on every day after
+// publication, so the date visibly changed once the page loaded (queue #43).
+// An edition is dated when it was published, not when it is read.
+function editionLine(posts, updated) {
   const n = posts.length;
-  return 'Edition of ' + today + ' · ' + n + (n === 1 ? ' story' : ' stories');
+  return 'Edition of ' + (longDate(updated) || 'today') + ' · ' + n + (n === 1 ? ' story' : ' stories');
 }
 
 function siteChip(post) {
@@ -74,15 +72,22 @@ function renderChips(s) {
 }
 
 function renderFeed(s) {
+  // Not "the wire is down" any more: there is no wire to be down, the archive
+  // travels inside this page, so the only way to get here is a broken publish.
   $('editionLine').textContent = s.error
-    ? 'The wire is down: the feed could not be loaded'
-    : editionLine(s.posts);
+    ? 'This edition was published broken'
+    : editionLine(s.posts, s.updated);
   renderChips(s);
   const shown = applyFilters(s);
   const feed = $('feed');
   if (s.error) {
-    feed.innerHTML = '<div class="feed-empty card">Could not load data/posts.json. '
-      + 'Reload the page, or check the network tab if this keeps happening.</div>';
+    // The archive is stamped into this page, so a failure here is a broken
+    // publish rather than a bad connection, and reloading will not fix it. Say
+    // so instead of sending the reader to their network tab, and point at the
+    // feed, which is built from the same archive and is not stamped.
+    feed.innerHTML = '<div class="feed-empty card">This page was published with a broken archive, '
+      + 'so the stories cannot be read. <a href="feed.xml">The RSS feed</a> carries the same '
+      + 'stories.</div>';
     return;
   }
   if (!shown.length) {

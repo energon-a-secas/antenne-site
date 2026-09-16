@@ -42,6 +42,7 @@ check:
 validate:
 	@node tests/post-mirror.test.mjs
 	@node tests/desk-publish.test.mjs
+	@node tests/data-archive.test.mjs
 	@node tests/convex-access.test.mjs
 	@node tests/convex-drafts.test.mjs
 	@node tests/convex-members.test.mjs

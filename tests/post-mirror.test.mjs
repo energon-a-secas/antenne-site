@@ -448,7 +448,7 @@ for (const [name, mod] of ENFORCERS) {
 }
 
 await section('js/data.js keeps every export the feed and the desk import', () => {
-  eq(Object.keys(data).sort(), ['KINDS', 'KIND_LABELS', 'loadPosts', 'normalizeDoc', 'normalizePost'], 'the export names');
+  eq(Object.keys(data).sort(), ['KINDS', 'KIND_LABELS', 'loadArchive', 'normalizeDoc', 'normalizePost'], 'the export names');
   eq(data.KINDS, schema.KINDS, 'KINDS is the schema\'s list');
   eq(data.KIND_LABELS, { launch: 'Launch', feature: 'Feature', fix: 'Fix', note: 'Note' }, 'KIND_LABELS');
   const shuffled = [...ARCHIVE.posts].reverse();

@@ -79,6 +79,22 @@ def write_text(path, text):
         fh.write(text)
 
 
+def stamped(text, name):
+    """What one <!-- gen:NAME --> region of index.html holds, so a test can say
+    which stamp it means: the rendered ones and the inline archive answer to
+    different rules, and only the rendered ones trim."""
+    start, end = "<!-- gen:%s -->" % name, "<!-- /gen:%s -->" % name
+    i, j = text.index(start) + len(start), text.index(end)
+    return text[i:j]
+
+
+def archive_stamp(text):
+    """The archive index.html carries, parsed the way the page parses it: the
+    element's own text, which is why the stamp markers are outside it."""
+    region = stamped(text, "archive")
+    return json.loads(region[region.index(">") + 1: region.rindex("</script>")])
+
+
 def make_site():
     site = tempfile.mkdtemp(prefix="dispatch-site-test-")
     temp_dirs.append(site)
@@ -609,8 +625,15 @@ try:
         site = make_site()
         dump_json(os.path.join(site, "data", "posts.json"), doc)
         eq(run(site)[0], 0, "a padded title, summary and body build, since archive mode trims them")
-        eq(read_bytes(os.path.join(site, "index.html")) == REAL["index.html"], True,
-           "and the stamp shows them trimmed, as normalizePost does: index.html is byte-identical")
+        index = read_text(os.path.join(site, "index.html"))
+        real = REAL["index.html"].decode("utf-8")
+        eq([stamped(index, name) == stamped(real, name) for name in ("edition", "chips", "feed")], [True, True, True],
+           "and the rendered stamps show them trimmed, as normalizePost does: byte-identical")
+        # The archive stamp is data/posts.json, not a rendering of it, so the
+        # padding is still in there: the page trims it on the way to the DOM
+        # through the same read mode, which is what keeps the two agreeing.
+        eq(archive_stamp(index), doc,
+           "the archive stamp carries posts.json as written, padding included")
         eq(run(site, "--check")[0], 0, "--check agrees")
 
         doc = json.loads(ARCHIVE_TEXT)
@@ -647,6 +670,36 @@ try:
            "a url holding markup is refused by the grammar before anything is stamped, and not echoed")
         eq([read_bytes(os.path.join(site, "index.html")) == REAL["index.html"], read_bytes(os.path.join(site, "feed.xml")) == REAL["feed.xml"]],
            [True, True], "index.html and feed.xml are untouched")
+
+    with section("no story can break out of the archive stamp it sits in"):
+        # The stamp is inside a <script>, so a story carrying </script> would end
+        # the element early and put the rest of the archive on the page as markup.
+        # The escape is one rule, every < becomes a \\u003c, and this is the
+        # corpus that exercises it: data/posts.json has no < in it at all today.
+        doc = json.loads(ARCHIVE_TEXT)
+        first = doc["posts"][0]
+        first["title"] = "Breakout </script><img src=x onerror=stamp()>"
+        first["summary"] = "A comment <!-- opens here and --> closes there"
+        first["body"] = ["</SCRIPT foo> and </script > and <!--> in one paragraph", "<b>bold</b>"]
+        site = make_site()
+        dump_json(os.path.join(site, "data", "posts.json"), doc)
+        eq(run(site)[0], 0, "a story holding markup builds: the archive carries text, not HTML")
+        index = read_text(os.path.join(site, "index.html"))
+        region = stamped(index, "archive")
+        body = region[region.index(">") + 1: region.rindex("</script>")]
+        eq(["<" in body, "\\u003c" in body], [False, True],
+           "the archive stamp holds no < at all, only \\u003c")
+        eq(archive_stamp(index), doc, "and it is still the archive, character for character, once parsed")
+        # The rendered card escapes the same text a second way, through escHtml,
+        # so neither route puts a story's markup into the document. The escaped
+        # text still reads onerror=..., which is why the check is for the tag it
+        # would have to open, not for the word.
+        eq(["Breakout &lt;/script&gt;&lt;img src=x onerror=stamp()&gt;" in index,
+            "<p>&lt;b&gt;bold&lt;/b&gt;</p>" in index,
+            "</script><img" in index, "<b>bold</b>" in index],
+           [True, True, False, False],
+           "the rendered stamp escapes it too: the story opens no tag of its own")
+        eq(run(site, "--check")[0], 0, "--check agrees")
 
     # ── --selftest can fail ───────────────────────────────────────────────────
     with section("--selftest exits 1 on any mismatch: ok, problems, their order, external, the post and its key order"):

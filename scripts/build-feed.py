@@ -36,6 +36,9 @@ HASH_VECTORS = ROOT / "tests" / "hash-vectors.json"
 
 SITE_URL = "https://dispatch.neorgon.com/"
 FEED_ITEMS = 20
+# The id js/data.js looks the stamped archive up by. Both ends have to agree or
+# the page loads with no stories at all, so it is written once here.
+ARCHIVE_ID = "archive"
 
 
 def fail(msg: str) -> None:
@@ -578,6 +581,21 @@ def stamp_block(html: str, name: str, inner: str) -> str:
     return html[: i + len(start)] + inner + html[j:]
 
 
+def inline_archive(doc: dict) -> str:
+    """The archive as index.html carries it, for the page to read with no fetch.
+
+    Same object as data/posts.json, so the page normalizes the archive itself
+    and there is no second set of rules. Every `<` becomes \\u003c, which JSON
+    only ever has inside a string, so no story can end the script element it
+    sits in with a </script> or open a comment with a <!--.
+
+    The element is stamped whole, markers outside it: a script element holds raw
+    text, so `<!-- gen:archive -->` written inside would be part of the JSON the
+    page parses rather than a comment the parser drops."""
+    body = json.dumps(doc, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
+    return f'<script type="application/json" id="{ARCHIVE_ID}">{body}</script>'
+
+
 def stamped_index(doc: dict, posts: list) -> tuple:
     """Return (current index.html, index.html with the feed stamped in). Each
     post is stamped as the page renders it, through read mode (js/data.js
@@ -589,6 +607,7 @@ def stamped_index(doc: dict, posts: list) -> tuple:
     out = stamp_block(current, "edition", edition_line(doc, shown))
     out = stamp_block(out, "chips", render_chips(shown))
     out = stamp_block(out, "feed", cards)
+    out = stamp_block(out, "archive", inline_archive(doc))
     return current, out
 
 
