@@ -5,7 +5,7 @@
 
 import {
   desk, draftId, effectivePost, verdict, setVerdict, setEdit,
-  approvedPosts, publish, docJson, resetOverlay,
+  approvedPosts, publish, docJson, resetOverlay, PUBLISH_TARGET,
 } from './desk.js';
 import { renderCard } from './render.js';
 import { KINDS, KIND_LABELS } from './data.js';
@@ -176,7 +176,9 @@ function bindOnce() {
   $('copyJsonBtn').addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(docJson());
-      showToast('posts.json copied to the clipboard.');
+      // Same reason as the publish toast: the copy is only worth anything in
+      // one file, so name it rather than leaving the operator to remember.
+      showToast(`Copied. It goes in ${PUBLISH_TARGET}, nothing else is read.`, 6000);
     } catch { showToast('Clipboard blocked. Use Publish instead.'); }
   });
 

@@ -99,19 +99,50 @@ export function docJson() {
   return JSON.stringify(buildDoc(), null, 2) + '\n';
 }
 
-/** Write posts.json via the File System Access API; fall back to download. */
+// The one place the archive path is written, so the dialog, both toasts and the
+// operator all name the same file. The only path the feed reads.
+export const PUBLISH_TARGET = 'data/posts.json';
+const PUBLISH_NAME = 'posts.json';
+
+// A suggestedName may not contain a directory separator, so the name cannot say
+// where the file belongs and the picker opens wherever it last was. On
+// 2026-09-11 that was the repo ROOT: twelve approved stories were saved over a
+// stale tracked posts.json nothing reads, and nothing went live until they were
+// copied into data/ by hand. `id` is the lever that fixes it, because a browser
+// remembers a directory per id, so the second publish onward opens where the
+// first one saved. `startIn` cannot help: it takes a well-known directory name
+// (documents, downloads) or a handle we would have to have stored already, and
+// the repo is neither. Keep it alphanumeric and short; a browser rejects an
+// id it does not like by throwing instead of saving.
+const PUBLISH_PICKER_ID = 'dispatchArchive';
+
+/**
+ * Write the archive via the File System Access API; fall back to a download.
+ *
+ * Neither the id nor the wording can PREVENT a save to the wrong place, so
+ * scripts/build-feed.py --check fails on a posts.json at the repo root. This
+ * end makes the right place easy and says the path out loud; that end catches
+ * the miss before it can be committed.
+ */
 export async function publish() {
   const json = docJson();
   if (window.showSaveFilePicker) {
     try {
       const handle = await window.showSaveFilePicker({
-        suggestedName: 'posts.json',
+        id: PUBLISH_PICKER_ID,
+        suggestedName: PUBLISH_NAME,
         types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }],
       });
       const writable = await handle.createWritable();
       await writable.write(json);
       await writable.close();
-      showToast('Saved. Next: make feed, review the diff, commit.', 6000);
+      // The picker lets the operator rename, and "posts (1).json" in the right
+      // directory is as dead as posts.json in the wrong one. The directory is
+      // not ours to read; the name is, so say when it is wrong.
+      const saved = (handle && handle.name) || PUBLISH_NAME;
+      showToast(saved === PUBLISH_NAME
+        ? `Saved. It only counts as ${PUBLISH_TARGET}: check that, then make feed, review the diff, commit.`
+        : `Saved as ${saved}, and only ${PUBLISH_TARGET} is read. Rename it there, then make feed.`, 8000);
       return;
     } catch (err) {
       if (err && err.name === 'AbortError') return; // user cancelled the picker
@@ -121,10 +152,10 @@ export async function publish() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'posts.json';
+  a.download = PUBLISH_NAME;
   a.click();
   URL.revokeObjectURL(url);
-  showToast('Downloaded posts.json. Move it into data/, then make feed.', 6000);
+  showToast(`Downloaded ${PUBLISH_NAME}. Move it to ${PUBLISH_TARGET}, then make feed.`, 8000);
 }
 
 async function fetchJson(path) {

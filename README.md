@@ -73,6 +73,17 @@ an embeddable strip for the hub's corner popup and an RSS feed.
 Drafts never reach the repo; only approved stories do. On the public site,
 `data/drafts/` 404s and the desk explains itself.
 
+**Publish writes one path, `data/posts.json`, and nothing else is read.** The
+browser's save dialog cannot be told a directory (a `suggestedName` may not carry
+a separator), so the desk passes a stable picker `id` instead, which makes the
+dialog reopen where it last saved, and every message names the full path rather
+than the file. On 2026-09-11 it did neither: twelve approved stories went to the
+repo root over a stale tracked `posts.json` nothing reads, and nothing was live
+until they were copied across by hand. Wording alone cannot stop that, so
+`make check` fails while a `posts.json` sits at the root
+(`tests/desk-publish.test.mjs` covers the desk end, `tests/test_build_feed.py`
+the other).
+
 ---
 
 ## Running locally
