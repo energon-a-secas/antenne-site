@@ -69,39 +69,55 @@
   <main id="main">
     <div class="container stack">
       <section class="section" aria-label="Desk status">
-        <div class="card desk-banner" id="deskBanner">Checking for drafts…</div>
+        <div class="card desk-banner" id="deskBanner" data-state="loading"><p>Loading the desk.</p></div>
+        <p class="desk-notice" id="deskNotice" role="status"></p>
       </section>
 
-      <section class="section" aria-labelledby="draftsTitle" id="draftsSection" hidden>
-        <div class="section__titles">
-          <h2 class="section__title" id="draftsTitle">Drafts</h2>
-          <p class="section__lead">Edit in place, then approve or spike each story.
-            Your edits and verdicts live in this browser until you publish.</p>
-        </div>
-        <div class="stack stack--tight" id="drafts"></div>
-        <div class="desk-publishbar" id="publishBar" hidden>
-          <span class="desk-publishbar__count" id="publishCount"></span>
-          <div class="desk-publishbar__actions">
-            <button type="button" class="btn btn--ghost btn--sm" id="resetDeskBtn">Reset desk</button>
-            <button type="button" class="btn btn--secondary btn--sm" id="copyJsonBtn">Copy data/posts.json</button>
-            <button type="button" class="btn btn--primary btn--sm" id="publishBtn">Publish approved</button>
+      <section class="section" id="accountSection" aria-labelledby="accountTitle" hidden>
+        <h2 class="section__title" id="accountTitle">Your account</h2>
+        <div class="card desk-account" id="deskAccount"></div>
+      </section>
+
+      <section class="section" id="publishSection" aria-labelledby="publishTitle" hidden>
+        <h2 class="section__title" id="publishTitle">Publishing</h2>
+        <div class="card desk-status" id="publishBar"></div>
+      </section>
+
+      <section class="section" id="lanesSection" aria-labelledby="lanesTitle" hidden>
+        <div class="section__header">
+          <div class="section__titles">
+            <h2 class="section__title" id="lanesTitle">Stories</h2>
+            <p class="section__lead">An approved story publishes by itself once the publish delay has passed.
+              Withdraw it before then to stop it.</p>
+          </div>
+          <div class="toolbar">
+            <button type="button" class="btn btn--secondary btn--sm" id="newStoryBtn">New story</button>
+            <button type="button" class="btn btn--primary btn--sm" id="approveAllBtn" hidden>Approve all shown</button>
           </div>
         </div>
+        <div id="newStory" hidden></div>
+        <div class="desk-lanes" id="lanes"></div>
       </section>
 
-      <section class="section" aria-labelledby="publishedTitle">
-        <div class="section__titles">
-          <h2 class="section__title" id="publishedTitle">Already published</h2>
-        </div>
-        <div class="card" style="margin-bottom:0;">
-          <ul class="published-list" id="published"></ul>
-        </div>
+      <section class="section" id="peopleSection" aria-labelledby="peopleTitle" hidden>
+        <h2 class="section__title" id="peopleTitle">People and settings</h2>
+        <div class="desk-people" id="people"></div>
       </section>
     </div>
+
+    <dialog class="desk-dialog" id="deskDialog" aria-labelledby="deskDialogTitle">
+      <h2 class="desk-dialog__title" id="deskDialogTitle">Confirm</h2>
+      <p class="desk-dialog__lead" id="deskDialogLead"></p>
+      <ol class="desk-dialog__list" id="deskDialogList" hidden></ol>
+      <div class="toolbar desk-dialog__actions">
+        <button type="button" class="btn btn--ghost btn--sm" id="deskDialogCancel">Cancel</button>
+        <button type="button" class="btn btn--primary btn--sm" id="deskDialogConfirm">Confirm</button>
+      </div>
+    </dialog>
   </main>
 
   <footer class="neo-footer" data-footer-mode="app">
-    The desk reads drafts from data/drafts/, a path that never gets committed.
+    Stories wait on this desk, out of public view, until someone with a desk role approves them. Approved stories publish by themselves.
   </footer>
 
   <script type="module" src="js/desk.js"></script>

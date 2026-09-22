@@ -15,6 +15,7 @@ import {
   approveCore, approveManyCore, assignCore, editCore, newDraft, overrideLinksCore, queueCore, recheckLinksCore,
   reopenCore, spikeCore, submitCore, takeCore, withdrawCore,
 } from '../convex/lib/draftsCore.ts';
+import { DESK_PENDING_MAX } from '../convex/lib/limits.ts';
 import { contentHash, validatePost } from '../convex/lib/post.ts';
 
 let failed = 0;
@@ -117,12 +118,29 @@ await section('a desk submission goes to the default assignee while eligible, ne
 await section('drafts:submit allows 30 stories an hour per account', async () => {
   const db = await world();
   const editor = await as(db, EDITOR);
-  for (let i = 0; i < 30; i += 1) await submitCore(db, editor, { post: post(`s${i}`) }, T0 + i, ENV);
+  // Each story is decided as it lands, so the pending cap never binds and only the hourly rate is measured.
+  for (let i = 0; i < 30; i += 1) await db.patch((await submitCore(db, editor, { post: post(`s${i}`) }, T0 + i, ENV)).draftId, { status: 'spiked' });
   eq(db.count('drafts'), 30, 'thirty submissions in an hour');
   const r = await refused(db, () => submitCore(db, editor, { post: post('s30') }, T0 + 30, ENV), 'rate-limited', 'the 31st');
   eq(r.retryAfterMs > 0, true, 'and says when to retry');
   eq((await submitCore(db, await as(db, REVIEWER), { post: post('other') }, T0 + 31, ENV)).ok, true, 'another account is not affected');
   eq((await submitCore(db, editor, { post: post('later') }, T0 + HOUR + 1, ENV)).ok, true, 'an hour after the first, the window has room again');
+});
+
+await section(`drafts:submit: at most ${DESK_PENDING_MAX} pending drafts per person, read through by_submittedBy; nobody else's count`, async () => {
+  const db = await world();
+  const submitter = await as(db, SUBMITTER);
+  const mine = [];
+  for (let i = 0; i < DESK_PENDING_MAX - 1; i += 1) mine.push(await seedDraft(db, { post: post(`mine${i}`), submittedBy: SUBMITTER }));
+  for (let i = 0; i < 200; i += 1) await seedDraft(db, { post: post(`other${i}`) });
+  await seedDraft(db, { post: post('decided'), submittedBy: SUBMITTER, status: 'approved' });
+  eq((await submitCore(db, submitter, { post: post('last') }, T0, ENV)).ok, true, `the ${DESK_PENDING_MAX}th pending story is taken, with 200 of another account's pending and one of theirs approved`);
+  db.clearLog();
+  const full = await refused(db, () => submitCore(db, submitter, { post: post('over') }, T0 + 1, ENV), 'queue-full', `the ${DESK_PENDING_MAX + 1}th pending story`);
+  eq([full.max, db.log.filter((e) => e.table === 'drafts').map((e) => e.index)], [DESK_PENDING_MAX, ['by_storyId', 'by_submittedBy']], 'it names the cap, and counts through by_submittedBy alone');
+  eq((await submitCore(db, await as(db, OWNER), { post: post('owner') }, T0 + 2, ENV)).ok, true, 'another person is not affected');
+  await db.patch(mine[0], { status: 'spiked' });
+  eq((await submitCore(db, submitter, { post: post('over') }, T0 + 3, ENV)).ok, true, 'once one of theirs is decided there is room again');
 });
 
 await section('a stale expectedRev is refused before anything is written', async () => {
@@ -133,7 +151,7 @@ await section('a stale expectedRev is refused before anything is written', async
   eq(r.rev, 1, 'stale names the current rev');
   await refused(db, () => approveCore(db, editor, { draftId: id, expectedRev: 2 }, T0, ENV), 'stale', 'approve with rev 2');
   await refused(db, () => spikeCore(db, editor, { draftId: id, expectedRev: '1' }, T0, ENV), 'stale', 'a rev sent as a string');
-  eq((await editCore(db, editor, { draftId: id, expectedRev: 1, patch: { title: 'On time' } }, T0, ENV)).rev, 2, 'the current rev edits');
+  eq((await editCore(db, editor, { draftId: id, expectedRev: 1, patch: { title: 'On time' } }, T0, ENV)).result.rev, 2, 'the current rev edits');
   const reviewer = await as(db, REVIEWER);
   await refused(db, () => approveCore(db, reviewer, { draftId: id, expectedRev: 1 }, T0, ENV), 'stale', 'an approve holding the rev from before that edit');
 });
@@ -245,8 +263,10 @@ await section('a blocking link check refuses approval until an owner overrides i
   const warn = await seedDraft(db, { post: post('warn'), submittedBy: SUBMITTER, linkChecks: [{ url, status: 503, blocking: false }] });
   eq((await approveCore(db, editor, { draftId: warn, expectedRev: 1 }, T0, ENV)).result.ok, true, 'a warning does not block');
   const swap = await seedDraft(db, { post: post('swap'), submittedBy: SUBMITTER, linkChecks: [{ url, status: 404, blocking: true }], linkOverride: OWNER });
-  eq((await editCore(db, editor, { draftId: swap, expectedRev: 1, patch: { links: [{ label: 'Feed', url: 'https://dispatch.neorgon.com/' }] } }, T0, ENV)).ok, true, 'an edit replaces the broken url');
+  eq(await editCore(db, editor, { draftId: swap, expectedRev: 1, patch: { links: [{ label: 'Feed', url: 'https://dispatch.neorgon.com/' }] } }, T0, ENV), { result: { ok: true, rev: 2 }, intent: { kind: 'links', draftId: swap } }, 'an edit replaces the broken url, and a new url set asks for a link check');
   eq([draftOf(db, swap).linkChecks, draftOf(db, swap).linkOverride], [[], null], 'the check for a url that is gone is dropped, and the override with it');
+  const relabel = [{ label: 'The feed', url: 'https://dispatch.neorgon.com/' }, { label: 'Again', url: 'https://dispatch.neorgon.com/' }];
+  eq([await editCore(db, editor, { draftId: swap, expectedRev: 2, patch: { links: relabel } }, T0, ENV), draftOf(db, swap).linkChecks], [{ result: { ok: true, rev: 3 }, intent: null }, []], 'new labels over the same url set: saved, and no link check');
 });
 
 await section('editing an approved draft returns it to pending and clears the approval', async () => {
@@ -256,8 +276,8 @@ await section('editing an approved draft returns it to pending and clears the ap
   await approveCore(db, editor, { draftId: id, expectedRev: 1 }, T0, ENV);
   db.resetWrites();
   eq([await editCore(db, editor, { draftId: id, expectedRev: 2, patch: { title: `  ${POST.title}` } }, T0, ENV), db.writes(), draftOf(db, id).status],
-    [{ ok: true, rev: 2 }, 0, 'approved'], 'an edit that changes nothing writes nothing, and the approval stands');
-  eq(await editCore(db, editor, { draftId: id, expectedRev: 2, patch: { title: 'A sharper title' } }, T0 + 1, ENV), { ok: true, rev: 3 }, 'a real edit');
+    [{ result: { ok: true, rev: 2 }, intent: null }, 0, 'approved'], 'an edit that changes nothing writes nothing, and the approval stands');
+  eq(await editCore(db, editor, { draftId: id, expectedRev: 2, patch: { title: 'A sharper title' } }, T0 + 1, ENV), { result: { ok: true, rev: 3 }, intent: null }, 'a real edit, and with the same urls no link check');
   const d = draftOf(db, id);
   eq([d.status, d.rev, d.approvedHash, d.approvedBy, d.approvedAt, d.publishAfter], ['pending', 3, null, null, null, null], 'is pending again with the approval cleared');
   eq(eventsOf(db, id).at(-1).detail, { rev: 3, fields: ['title'], from: 'approved', to: 'pending', contentHash: d.contentHash }, 'and its event records the way back');
@@ -274,13 +294,13 @@ await section('reviewers edit what they hold; submitters edit their own pending 
   const reviewer = await as(db, REVIEWER);
   const submitter = await as(db, SUBMITTER);
   const patch = { summary: 'A new summary.' };
-  eq((await editCore(db, reviewer, { draftId: held, expectedRev: 1, patch }, T0, ENV)).ok, true, 'a reviewer edits a draft assigned to them');
+  eq((await editCore(db, reviewer, { draftId: held, expectedRev: 1, patch }, T0, ENV)).result.ok, true, 'a reviewer edits a draft assigned to them');
   await refused(db, () => editCore(db, reviewer, { draftId: free, expectedRev: 1, patch }, T0, ENV), 'forbidden', 'a reviewer editing an unassigned draft');
-  eq((await editCore(db, submitter, { draftId: mine, expectedRev: 1, patch }, T0, ENV)).ok, true, 'a submitter edits their own pending draft');
+  eq((await editCore(db, submitter, { draftId: mine, expectedRev: 1, patch }, T0, ENV)).result.ok, true, 'a submitter edits their own pending draft');
   await refused(db, () => editCore(db, submitter, { draftId: mineApproved, expectedRev: 1, patch }, T0, ENV), 'status', 'a submitter editing their own approved draft');
   await refused(db, () => editCore(db, submitter, { draftId: free, expectedRev: 1, patch }, T0, ENV), 'not-found', 'a submitter editing a draft they did not submit');
   await refused(db, () => editCore(db, submitter, { draftId: mine, expectedRev: 2, patch: { id: '2026-09-14-held' } }, T0, ENV), 'duplicate-id', 'an edit onto an id another draft holds');
-  const renamed = await editCore(db, submitter, { draftId: mine, expectedRev: 2, patch: { id: '2026-09-15-renamed', date: '2026-09-15' } }, T0, ENV);
+  const renamed = (await editCore(db, submitter, { draftId: mine, expectedRev: 2, patch: { id: '2026-09-15-renamed', date: '2026-09-15' } }, T0, ENV)).result;
   eq([renamed.ok, draftOf(db, mine).storyId, eventsOf(db, mine).at(-1).storyId], [true, '2026-09-15-renamed', '2026-09-15-renamed'], 'an id and date change moves storyId with the post');
 });
 
@@ -359,7 +379,7 @@ await section('a machine draft is human-touched once a person changes its story,
   eq([draftOf(db, edited).source, draftOf(db, edited).machineRev, touched(edited)], ['machine', 1, false], 'a machine draft is born untouched');
   await editCore(db, editor, { draftId: edited, expectedRev: 1, patch: { title: `  ${POST.title}  ` } }, T0, ENV);
   eq(touched(edited), false, 'an edit that changes nothing leaves it untouched');
-  eq((await editCore(db, editor, { draftId: edited, expectedRev: 1, patch: { title: 'A human title' } }, T0, ENV)).ok, true, 'an editor changes the title');
+  eq((await editCore(db, editor, { draftId: edited, expectedRev: 1, patch: { title: 'A human title' } }, T0, ENV)).result.ok, true, 'an editor changes the title');
   eq(touched(edited), true, 'and it is human-touched');
   eq([(await approveCore(db, editor, { draftId: edited, expectedRev: 2 }, T0, ENV)).result.ok, touched(edited)], [true, true], 'approving it later with no patch keeps it human-touched');
   const patched = await machine('patched');
@@ -411,7 +431,7 @@ await section('drafts: 600 changes an hour per account, refused in every core th
   eq((await submitCore(db, editor, { post: post('fresh') }, now, ENV)).ok, true, 'and drafts:submit counts in its own window');
   const reopen = now + waits[0];
   await refused(db, () => editCore(db, editor, { draftId: ids.edit, ...one, patch: { title: 'Nearly' } }, reopen - 1, ENV), 'rate-limited', 'a millisecond before that wait is over');
-  eq((await editCore(db, editor, { draftId: ids.edit, ...one, patch: { title: 'An hour on' } }, reopen, ENV)).ok, true, 'once it is over, one more change fits');
+  eq((await editCore(db, editor, { draftId: ids.edit, ...one, patch: { title: 'An hour on' } }, reopen, ENV)).result.ok, true, 'once it is over, one more change fits');
   await refused(db, () => approveCore(db, editor, { draftId: ids.approve, ...one }, reopen, ENV), 'rate-limited', 'and only one, because the window slides');
 });
 

@@ -2,7 +2,7 @@ import type { GenericDatabaseReader, GenericDatabaseWriter } from "convex/server
 import { authorize, checkAssignee, guardWrite, isMember } from "./access.ts";
 import type { Action, Caller, DeskEnv, Human } from "./access.ts";
 import { canonicalJson, contentHash } from "./canonical.ts";
-import { APPROVE_MANY_MAX, LIVE_SHOWN_MS, NOTE_MAX, QUEUE_PER_STATUS_MAX, SPIKED_SHOWN_MS } from "./limits.ts";
+import { APPROVE_MANY_MAX, DESK_PENDING_MAX, LIVE_SHOWN_MS, NOTE_MAX, QUEUE_PER_STATUS_MAX, SPIKED_SHOWN_MS } from "./limits.ts";
 import { checkText, validatePost } from "./post.ts";
 import type { Post, Problem } from "./post.ts";
 import { recordRate, refuseIfLimited } from "./rate.ts";
@@ -17,9 +17,9 @@ import type { DeskSettings } from "./settingsCore.ts";
 // write, in this order: frozen and the permission table; the draft (not-found,
 // and a submitter's view is their own drafts); expectedRev (stale); status;
 // the role's extra rule; the values (invalid, duplicate-id, external-links,
-// links-blocked); the rate limit. Then it writes the change and one
-// draftEvents row, whose detail holds ids, revs, field names and hashes and
-// never story text.
+// links-blocked); the submitting person's pending cap (queue-full); the rate
+// limit. Then it writes the change and one draftEvents row, whose detail holds
+// ids, revs, field names and hashes and never story text.
 
 type Reader = GenericDatabaseReader<any>;
 type Db = GenericDatabaseWriter<any>;
@@ -97,7 +97,7 @@ async function openDraft(db: Reader, caller: Human, args: DraftArgs, statuses: r
   return { draft };
 }
 
-type Revision = { post: Post; hash: string; external: boolean; fields: string[]; linkChecks: unknown; linkOverride: unknown };
+type Revision = { post: Post; hash: string; external: boolean; fields: string[]; urlsChanged: boolean; linkChecks: unknown; linkOverride: unknown };
 
 function same(a: unknown, b: unknown): boolean {
   return a === undefined || b === undefined ? a === b : canonicalJson(a) === canonicalJson(b);
@@ -127,7 +127,7 @@ async function revise(db: Reader, draft: any, patch: unknown, required: boolean)
   const oldUrls = new Set(Array.isArray(draft.post?.links) ? draft.post.links.map((l: any) => l && l.url) : []);
   const sameUrls = urls.size === oldUrls.size && [...urls].every((u) => oldUrls.has(u));
   const linkChecks = sameUrls || !Array.isArray(draft.linkChecks) ? draft.linkChecks : draft.linkChecks.filter((c: any) => c && urls.has(c.url));
-  return { post, hash: await contentHash(post), external: verdict.external, fields, linkChecks, linkOverride: sameUrls ? draft.linkOverride : null };
+  return { post, hash: await contentHash(post), external: verdict.external, fields, urlsChanged: !sameUrls, linkChecks, linkOverride: sameUrls ? draft.linkOverride : null };
 }
 
 function revisionFields(r: Revision): Record<string, unknown> {
@@ -191,6 +191,16 @@ export async function submitCore(db: Db, caller: Caller, args: { post?: unknown 
   if (!verdict.ok || !verdict.post) return invalid(verdict.problems);
   const post = verdict.post;
   if (await idTaken(db, post.id, null)) return fail("duplicate-id", "Another story already uses that id.");
+  // One person holds at most DESK_PENDING_MAX pending drafts, so no one account
+  // fills the pending window every reviewer and the drafter read (the review
+  // decision of 2026-09-22). Their own drafts only, through by_submittedBy.
+  const held = await db
+    .query("drafts")
+    .withIndex("by_submittedBy", (q: any) => q.eq("submittedBy", human.subject).eq("status", "pending"))
+    .take(DESK_PENDING_MAX);
+  if (held.length >= DESK_PENDING_MAX) {
+    return fail("queue-full", `You have ${DESK_PENDING_MAX} stories waiting for review. Wait for one to be decided before you submit another.`, { max: DESK_PENDING_MAX });
+  }
   const limited = await refuseIfLimited(db, human.subject, "draft.submit", now, "stories submitted this hour");
   if (limited) return limited;
   const assignee = await eligibleDefaultAssignee(db, env, human.subject);
@@ -202,21 +212,27 @@ export async function submitCore(db: Db, caller: Caller, args: { post?: unknown 
   return done({ draftId, storyId: post.id });
 }
 
-/** Edits a pending or approved draft; an approved one returns to pending with its approval cleared. */
-export async function editCore(db: Db, caller: Caller, args: DraftArgs & { patch?: unknown }, now: number, env: DeskEnv): Promise<Result> {
+/**
+ * Edits a pending or approved draft; an approved one returns to pending with
+ * its approval cleared. An edit that changes the set of link urls asks for a
+ * link check (a links intent); one that leaves the urls alone does not, so
+ * editing text sends no requests (the review decision of 2026-09-22).
+ */
+export async function editCore(db: Db, caller: Caller, args: DraftArgs & { patch?: unknown }, now: number, env: DeskEnv): Promise<WithIntent> {
+  const refuse = (result: Failure): WithIntent => ({ result, intent: null });
   const refused = guardWrite(caller, "draft.edit", env);
-  if (refused) return refused;
+  if (refused) return refuse(refused);
   const human = caller as Human;
   const statuses = human.role === "submitter" ? ["pending"] : ["pending", "approved"];
   const opened = await openDraft(db, human, args, statuses, [reviewerHolds]);
-  if ("failure" in opened) return opened.failure;
+  if ("failure" in opened) return refuse(opened.failure);
   const { draft } = opened;
   const revision = await revise(db, draft, args.patch, true);
-  if ("failure" in revision) return revision.failure;
+  if ("failure" in revision) return refuse(revision.failure);
   // Nothing changed: no write, no event, and an approval stands.
-  if (revision.fields.length === 0) return done({ rev: draft.rev });
+  if (revision.fields.length === 0) return { result: done({ rev: draft.rev }), intent: null };
   const limited = await refuseIfLimited(db, human.subject, "draft.write", now, WRITES);
-  if (limited) return limited;
+  if (limited) return refuse(limited);
 
   const rev = draft.rev + 1;
   const back = draft.status === "approved";
@@ -224,7 +240,7 @@ export async function editCore(db: Db, caller: Caller, args: DraftArgs & { patch
   await recordEvent(db, { _id: draft._id, storyId: revision.post.id }, human.subject, "edit",
     { rev, fields: revision.fields, from: draft.status, to: back ? "pending" : draft.status, contentHash: revision.hash }, now);
   await recordRate(db, human.subject, "draft.write", now);
-  return done({ rev });
+  return { result: done({ rev }), intent: revision.urlsChanged ? { kind: "links", draftId: draft._id } : null };
 }
 
 // ── drafts:approve and drafts:approveMany ─────────────────────────────────────

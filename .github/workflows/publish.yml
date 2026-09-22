@@ -1,0 +1,109 @@
+name: publish
+
+# Publishes the approved Antenne stories (docs/plans/2026-09-15-antenne-desk.md
+# section 6.2). The desk backend dispatches this with the run_id of its publish
+# run once an approval's delay is up; a push to main runs it to pick up
+# anything due; make publish-now and make publish-dryrun run it by hand.
+#
+# One job: scripts/publish-approved.py claims the stories from Convex, merges
+# them into data/posts.json, rebuilds the feed, commits as the
+# antenne-publisher App, pushes, and waits for GitHub Pages. It prints ids and
+# counts, never story text. The App's token is the only credential that can
+# push, and it is minted per run, scoped to this repository.
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: The publish run the desk backend dispatched (empty for a manual run)
+        type: string
+        default: ''
+      dry_run:
+        description: Merge and build, then release the claim without pushing
+        type: boolean
+        default: false
+  push:
+    branches: [main]
+
+concurrency:
+  group: antenne-publish
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  issues: write
+
+jobs:
+  publish:
+    # The App's own feed commit is a push to main too; it has nothing left to publish.
+    if: github.event_name != 'push' || github.actor != 'antenne-publisher[bot]'
+    runs-on: ubuntu-latest
+    environment: antenne-publish
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+
+      - name: Mint the push token
+        id: app-token
+        if: ${{ !inputs.dry_run }}
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ vars.ANTENNE_APP_ID }}
+          private-key: ${{ secrets.ANTENNE_APP_PRIVATE_KEY }}
+          repositories: dispatch-site
+          permission-contents: write
+
+      - name: Publish approved stories
+        id: publish
+        env:
+          ANTENNE_CONVEX_SITE: ${{ vars.ANTENNE_CONVEX_SITE }}
+          ANTENNE_KEY: ${{ secrets.ANTENNE_PUBLISH_KEY }}
+          RUN_ID: ${{ inputs.run_id }}
+          DRY_RUN: ${{ inputs.dry_run && 'true' || 'false' }}
+          GH_RUN_ID: ${{ github.run_id }}
+          GH_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
+          APP_TOKEN: ${{ steps.app-token.outputs.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python3 scripts/publish-approved.py run
+
+      # One open issue for every failure until a run succeeds: the run's page,
+      # the step that failed and a count. Never a story id or story text. Both
+      # lookups take only an issue this workflow opened (--app github-actions):
+      # the repo is public, and anyone can open an issue with the same title.
+      - name: Report the failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          FAILED_STEP: ${{ steps.publish.outcome == 'failure' && format('publish ({0})', steps.publish.outputs.stage || 'no stage') || steps.app-token.outcome == 'failure' && 'mint the push token' || 'checkout or setup' }}
+        run: |
+          title='Antenne publish needs attention'
+          number=$(gh issue list --state open --app github-actions --search "\"$title\" in:title" --json number,title --jq ".[] | select(.title == \"$title\") | .number" | head -n 1)
+          if [ -z "$number" ]; then
+            gh issue create --title "$title" --body "$(printf 'Failure 1 since this issue opened.\n\nRun: %s\nFailed step: %s\n' "$RUN_URL" "$FAILED_STEP")"
+          else
+            count=$(gh issue view "$number" --json comments --jq '.comments | length')
+            gh issue comment "$number" --body "$(printf 'Failure %s since this issue opened.\n\nRun: %s\nFailed step: %s\n' "$((count + 2))" "$RUN_URL" "$FAILED_STEP")"
+          fi
+
+      - name: Close the failure issue
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title='Antenne publish needs attention'
+          number=$(gh issue list --state open --app github-actions --search "\"$title\" in:title" --json number,title --jq ".[] | select(.title == \"$title\") | .number" | head -n 1)
+          if [ -n "$number" ]; then
+            gh issue close "$number" --comment "Resolved by $RUN_URL"
+          fi

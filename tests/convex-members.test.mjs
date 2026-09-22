@@ -5,8 +5,11 @@
 // label; revocation moving assigned drafts in batches; access requests and
 // their caps; recordRate pruning the rate rows a window no longer counts;
 // dismissal; the People panel's reads; settings. Every refusal is held to
-// writing nothing.
+// writing nothing. Last, a sweep of every public wrapper in convex/*.ts: the
+// env each copies from process.env, and the caller taken only from the token.
 
+import { readFileSync, readdirSync } from 'node:fs';
+import { registerHooks } from 'node:module';
 import { countWrites, createFakeDb } from './support/fakedb.mjs';
 import * as access from '../convex/lib/access.ts';
 import { newDraft } from '../convex/lib/draftsCore.ts';
@@ -145,6 +148,14 @@ await section('members:revoke deletes the row and moves assigned pending drafts 
   const held2 = await seedDraft(demoted, 'held', { assignee: EDITOR });
   await revokeCore(demoted, await as(demoted, OWNER), { subject: EDITOR }, T0, ENV);
   eq(demoted.rows('drafts').find((d) => d._id === held2).assignee, null, 'and to nobody when the default assignee is below reviewer');
+
+  const own = await world();
+  await setDefault(own, EDITOR);
+  const mine = await seedDraft(own, 'editors-own', { assignee: REVIEWER, submittedBy: EDITOR });
+  const theirs = await seedDraft(own, 'someone-elses', { assignee: REVIEWER });
+  eq(await revokeCore(own, await as(own, OWNER), { subject: REVIEWER }, T0, ENV), { ok: true, moved: 2, more: false }, 'revoking the holder of a story the default assignee submitted');
+  eq([mine, theirs].map((id) => own.rows('drafts').find((d) => d._id === id).assignee), [null, EDITOR], 'that story goes to nobody, never to the person who submitted it; the other goes to the default assignee');
+  eq(own.rows('draftEvents').map((e) => [e.draftId, e.detail.assignee.to]), [[mine, null], [theirs, EDITOR]], 'and each assign event names where its own story went');
 });
 
 await section('members:requestAccess: role null only, 50 open requests, 3 a day, a note of at most 200', async () => {
@@ -178,6 +189,21 @@ await section('members:requestAccess: role null only, 50 open requests, 3 a day,
   eq(fresh.rows('accessRequests').find((r) => r.subject === 'user_2quiet').email, null, 'stores no email');
   const me = await meCore(fresh, stranger, {}, T0, ENV);
   eq([me.signedIn, me.role, me.requested], [true, null, true], 'desk:me says requested');
+
+  // Any Neorgon account sets its own name, and the owner's People panel shows it and prefills Grant with it.
+  const [RLO, PDF, BEL] = [0x202e, 0x202c, 7].map((c) => String.fromCharCode(c));
+  const claims = [
+    [`${RLO}renwo eht${PDF}`, 'bidi@example.com'], ['Line one\nLine two', 'a b@example.com'], [`Bell${BEL}`, `x@example.com${RLO}`],
+    ['sk-ant-notreal', 'no-at-sign'], ['   ', `${'x'.repeat(250)}@e.com`], ['Nía Ñandú', 'ghp_notreal@example.com'], ['Ada', ' ada@example.com '],
+  ];
+  const stored = [];
+  for (const [i, [name, email]] of claims.entries()) {
+    eq(code(await requestAccessCore(fresh, await as(fresh, `user_2claim${i}`), { name, email }, T0, ENV)), 'ok', `claims ${JSON.stringify([name, email])}: the request is still taken`);
+    const row = fresh.rows('accessRequests').find((r) => r.subject === `user_2claim${i}`);
+    stored.push([row.label, row.email]);
+  }
+  eq(stored, [['', 'bidi@example.com'], ['', null], ['', null], ['', null], ['', null], ['Nía Ñandú', null], ['Ada', 'ada@example.com']],
+    'a name with bidi, control or token-like text is stored as no label; an email with spaces, bidi, no @, over 254 or token-like text as no email; each on its own');
 });
 
 await section('recordRate prunes its own bucket\'s aged-out rows, 100 a call, and keeps every row a window still counts', async () => {
@@ -250,6 +276,107 @@ await section('settings:get and settings:update', async () => {
   eq(await updateSettingsCore(db, owner, { defaultAssignee: null }, T0, ENV), { ok: true }, 'nobody is allowed');
   const editor = await as(db, EDITOR);
   await refused(db, () => updateSettingsCore(db, editor, { publishDelayMs: 0 }, T0, ENV), 'forbidden', 'an editor updating');
+});
+
+// ── The public wrappers themselves: their env, and the caller only from the token ──
+// Every section above hands the cores an env object. These load each convex/*.ts
+// that exports a query, mutation or action, through stand-ins for convex/values
+// and convex/_generated (neither exists without an install or a deployment; the
+// same stand-ins as tests/convex-publish-wired.test.mjs, with internal functions
+// marked apart), and sweep every public export. Arguments come from the export's
+// own validators with every string set to an owner's subject, so a wrapper that
+// stops copying DESK_OWNERS, DESK_DENY or DESK_FROZEN from process.env, or that
+// takes the caller from an argument, answers differently and this turns red.
+const STAND_INS = {
+  'convex/values': 'export const v = new Proxy({}, { get: (_, kind) => (...args) => ({ kind, args }) });',
+  './_generated/server': 'const reg = (kind) => (def) => ({ ...def, kind }); export const query = reg("query"); export const mutation = reg("mutation"); export const action = reg("action"); export const internalQuery = reg("internal"); export const internalMutation = reg("internal"); export const internalAction = reg("internal"); export const httpAction = (fn) => ({ kind: "http", run: fn });',
+  './_generated/api': 'const ref = (p) => new Proxy({ name: p.join(":") }, { get: (t, k) => (typeof k === "symbol" || k === "then" ? undefined : k in t ? t[k] : ref([...p, k])) }); export const internal = ref([]);',
+};
+registerHooks({
+  resolve(specifier, context, next) {
+    const stand = STAND_INS[specifier];
+    if (stand && (!specifier.startsWith('.') || /\/convex\/[^/]+\.ts$/.test(context.parentURL ?? ''))) return { url: `data:text/javascript,${encodeURIComponent(stand)}`, shortCircuit: true };
+    return next(specifier, context);
+  },
+});
+const CONVEX = new URL('../convex/', import.meta.url);
+const PUBLIC = [];
+for (const file of readdirSync(CONVEX).filter((f) => f.endsWith('.ts')).sort()) {
+  if (!/^export\s+const\s+\w+\s*=\s*(query|mutation|action)\s*\(/m.test(readFileSync(new URL(file, CONVEX), 'utf8'))) continue;
+  for (const [name, fn] of Object.entries(await import(new URL(file, CONVEX).href))) {
+    if (['query', 'mutation', 'action'].includes(fn?.kind)) PUBLIC.push({ name: `${file.slice(0, -3)}:${name}`, fn });
+  }
+}
+/** A value for one stand-in validator: every string an owner's subject, every id a real row. */
+function valueFor(validator, ids) {
+  const [kind, a] = [validator.kind, validator.args];
+  if (kind === 'string') return OWNER;
+  if (kind === 'id' && ids[a[0]]) return ids[a[0]];
+  if (kind === 'number') return 1;
+  if (kind === 'boolean') return true;
+  if (kind === 'null') return null;
+  if (kind === 'any') return { subject: OWNER, submittedBy: OWNER, assignee: OWNER };
+  if (kind === 'optional') return valueFor(a[0], ids);
+  if (kind === 'union') return valueFor(a.find((o) => o.kind !== 'null') ?? a[0], ids);
+  if (kind === 'array') return [valueFor(a[0], ids)];
+  if (kind === 'object') return Object.fromEntries(Object.entries(a[0]).map(([k, x]) => [k, valueFor(x, ids)]));
+  throw new Error(`the sweep has no value for v.${kind}(${a.map((x) => JSON.stringify(x)).join(', ')})`);
+}
+/** An answer that says nothing about the desk: every field null, false or empty, bar signedIn and the caller's own subject. */
+const empty = (r, subject) => r.ok === true && Object.entries(r).every(([k, x]) => k === 'ok' || k === 'signedIn' || x === null || x === false || (Array.isArray(x) && x.length === 0) || (k === 'subject' && x === subject));
+/** Calls one public function in a fresh world as `subject` (null: no token) under `env`; returns its answer, writes and schedules. */
+async function call({ fn }, subject, env) {
+  const db = Object.assign(await world(), { normalizeId: (table, id) => (typeof id === 'string' && id.startsWith(`${table}:`) ? id : null) });
+  const ids = { drafts: await seedDraft(db, 'sweep') };
+  await db.insert('accessRequests', { subject: 'user_2asker', label: 'Asker', email: null, note: null, requestedAt: T0 });
+  db.resetWrites();
+  const before = JSON.stringify(Object.keys(db.schema).map((t) => db.rows(t)));
+  const scheduled = [];
+  const record = async (...a) => { scheduled.push(a.length); };
+  const ctx = { db, auth: { getUserIdentity: async () => (subject === null ? null : { subject, name: 'Some Name', email: 'some@example.com' }) }, scheduler: { runAfter: record, runAt: record } };
+  const saved = Object.fromEntries(['DESK_OWNERS', 'DESK_DENY', 'DESK_FROZEN'].map((k) => [k, process.env[k]]));
+  Object.assign(process.env, { DESK_OWNERS: OWNER, DESK_DENY: '', DESK_FROZEN: '' }, env);
+  let answer;
+  try {
+    answer = await fn.handler(ctx, Object.fromEntries(Object.entries(fn.args ?? {}).map(([k, x]) => [k, valueFor(x, ids)])));
+  } catch (err) {
+    answer = { threw: String(err && err.message) };
+  } finally {
+    for (const [k, x] of Object.entries(saved)) if (x === undefined) delete process.env[k]; else process.env[k] = x;
+  }
+  const quiet = db.writes() === 0 && scheduled.length === 0 && JSON.stringify(Object.keys(db.schema).map((t) => db.rows(t))) === before;
+  return { answer, quiet };
+}
+const GUARDS = ['not-signed-in', 'not-member', 'frozen'];
+const NOBODY = 'user_2nobody';
+const PASSES = [
+  ['an owner, neither denied nor frozen (the control: every call gets past the guards, every read shows something)', OWNER, {},
+    (r) => !r.threw && !GUARDS.includes(r.code), (r) => !empty(r, OWNER), () => false],
+  ['an owner listed in DESK_DENY: role null, so not-member and empty reads', OWNER, { DESK_DENY: OWNER },
+    (r, name) => r.code === (name === 'members:requestAccess' ? 'forbidden' : 'not-member'), (r) => empty(r, OWNER), () => true],
+  ['an owner while DESK_FROZEN=1: every change answers frozen, reading still works', OWNER, { DESK_FROZEN: '1' },
+    (r) => r.code === 'frozen', (r, name) => !empty(r, OWNER) && (name !== 'desk:me' || r.frozen === true), () => true],
+  ['no token, every string argument an owner\'s subject: not-signed-in and empty reads', null, {},
+    (r) => r.code === 'not-signed-in', (r) => empty(r, null), () => true],
+  ['a signed-in account with no role and the same arguments: not-member (it may only ask for access) and empty reads', NOBODY, {},
+    (r, name) => (name === 'members:requestAccess' ? r.ok === true : r.code === 'not-member'), (r) => empty(r, NOBODY), (name) => name !== 'members:requestAccess'],
+];
+await section('the public wrappers read DESK_OWNERS, DESK_DENY and DESK_FROZEN from process.env and the caller only from the token', async () => {
+  const names = PUBLIC.map((p) => p.name);
+  const SECTION_4_3 = ['desk:me', 'desk:queue', ...['submit', 'edit', 'approve', 'approveMany', 'withdraw', 'reopen', 'take', 'overrideLinks', 'spike', 'assign', 'recheckLinks'].map((n) => `drafts:${n}`),
+    ...['list', 'assignable', 'grant', 'revoke', 'requestAccess', 'dismissRequest'].map((n) => `members:${n}`), 'settings:get', 'settings:update', 'publish:status', 'publish:now', 'publish:retry'];
+  eq(SECTION_4_3.filter((n) => !names.includes(n)), [], `the sweep reaches every section 4.3 function (${names.length} public functions found)`);
+  for (const [what, subject, env, changes, reads, quietWanted] of PASSES) {
+    const [wrong, loud] = [[], []];
+    for (const p of PUBLIC) {
+      const { answer, quiet } = await call(p, subject, env);
+      const good = p.fn.kind === 'query' ? answer.ok === true && reads(answer, p.name) : changes(answer, p.name);
+      if (!good) wrong.push(`${p.name} ${JSON.stringify(answer).slice(0, 160)}`);
+      if (quietWanted(p.name) && !quiet) loud.push(p.name);
+    }
+    eq(wrong, [], `${what}: every answer`);
+    eq(loud, [], `${what}: nothing written and nothing scheduled`);
+  }
 });
 
 console.log(failed ? `\n${failed} of ${checks} checks failed` : `\nall ${checks} checks passed`);

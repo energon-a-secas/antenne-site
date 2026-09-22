@@ -10,7 +10,7 @@ config:
     tertiaryColor: "#1e293b"
     clusterBkg: "#f0f7ff"
     clusterBorder: "#bfdbfe"
-    edgeLabelBackground: "#e8f0ff"
+    edgeLabelBackground: "#1e293b"
     mainBkg: "#0f172a"
     nodeBorder: "#0063e5"
     titleColor: "#1e1b4b"
@@ -18,29 +18,48 @@ config:
     fontSize: "13px"
 ---
 flowchart TB
-    Reader([Reader]) --> HTML["index.html\nFeed shell (also ?embed=1 strip)"]
-    Operator([Operator]) --> DESK["desk.html\nApproval desk (localhost)"]
+    Reader([Reader]) --> HTML["index.html<br>Feed shell (also ?embed=1 strip)"]
+    HUB["neorgon.com hub<br>corner popup iframe"] -->|"?embed=1&limit=3"| HTML
+    Member([Signed-in member]) --> DESK["desk.html<br>The desk (Clerk sign-in)"]
 
-    subgraph App["ES Modules"]
-        HTML --> app["app.js\nEntry point, embed detection"]
-        app --> state["state.js\nPrefs + read watermark"]
-        app --> data["data.js\nSchema: normalize + fetch"]
-        app --> render["render.js\nFeed cards, embed strip"]
-        app --> events["events.js\nFilters, keys, chrome toggle"]
-        DESK --> desk["desk.js\nDrafts, overlay, publish"]
-        desk --> deskui["desk-ui.js\nForms, previews, verdicts"]
-        deskui -->|"live previews"| render
-        desk --> data
+    subgraph Feed["Public feed: no Clerk, no Convex"]
+        HTML --> app["app.js<br>Entry point, embed detection"]
+        app --> state["state.js<br>Prefs + read watermark"]
+        app --> data["data.js<br>Reads the stamped archive"]
+        app --> render["render.js<br>Feed cards, embed strip"]
+        app --> events["events.js<br>Filters, keys, chrome toggle"]
     end
 
-    subgraph Data["Content pipeline"]
-        NEWSROOM["/newsroom command\ndrafts from fleet work logs"] -->|"writes"| DRAFTS[("data/drafts/\ngitignored")]
-        DRAFTS -->|"fetch (404 in prod)"| desk
-        desk -->|"publish approved"| POSTS[("data/posts.json\ncommitted")]
-        POSTS -->|"fetch"| data
-        POSTS -->|"make feed"| FEED["feed.xml\nRSS 2.0"]
+    subgraph Desk["Desk modules"]
+        DESK --> desk["desk.js<br>Sign-in, desk:me, refresh"]
+        desk --> api["desk-api.js<br>authedCall, function names"]
+        desk --> lanes["desk-lanes.js<br>Lanes, approve, New story"]
+        desk --> people["desk-people.js<br>Access, People, settings"]
+        desk --> pub["desk-publish.js<br>Status bar, Publish now, Retry"]
+        lanes --> deskui["desk-ui.js<br>Cards, editor, previews"]
+        deskui -->|"previews"| render
+        deskui --> schema["schema.js<br>Post rules, desk mode"]
     end
+
+    subgraph Backend["Convex project antenne"]
+        FUNCS["desk, drafts, members,<br>settings, publish functions"]
+        ROUTES["Signed HTTP routes<br>/submit /status /publish/*"]
+        TABLES[("drafts, members, publishRuns,<br>publishedIds, settings")]
+        SCHED["dispatch at approval + delay<br>link checks on new stories and link changes<br>crons: reconcile, checkLive, sweep"]
+    end
+
+    api -->|"Clerk token"| FUNCS
+    FUNCS --> TABLES
+    ROUTES --> TABLES
+    TABLES --> SCHED
+
+    NEWSROOM["/newsroom and the cloud drafter<br>submit-drafts.py, run through<br>the root's antenne_trust.py pins"] -->|"POST /submit"| ROUTES
+    WATCH["root watchdog (same pins)<br>and make status:<br>submit-drafts.py --status"] -->|"POST /status"| ROUTES
+    SCHED -->|"workflow_dispatch"| WF["publish.yml<br>publish-approved.py"]
+    WF -->|"claim, pushed, built"| ROUTES
+    WF -->|"build-feed.py --merge,<br>commit as antenne-publisher[bot]"| POSTS[("data/posts.json<br>committed")]
+    POSTS -->|"build-feed.py"| STAMP["index.html stamp<br>feed.xml RSS 2.0"]
+    STAMP --> HTML
+    POSTS -.->|"verified at the sha, then<br>seen live every 10 min"| SCHED
 
     state <-->|"dispatch-state"| Storage[("localStorage")]
-    desk <-->|"dispatch-desk"| Storage
-    HUB["neorgon.com hub\ncorner popup iframe"] -->|"?embed=1&limit=3"| HTML

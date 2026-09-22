@@ -30,6 +30,25 @@ function clip(value: unknown, max: number): string {
   return typeof value === "string" ? Array.from(value.trim()).slice(0, max).join("") : "";
 }
 
+/** One @, no whitespace either side. Clerk has verified the address; this only keeps odd text out of the People panel. */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+$/;
+
+/**
+ * The token's name claim as a request label: clipped to LABEL_MAX, then held
+ * to the note's text rules. Any Neorgon account sets its own name, so one
+ * carrying control or bidi characters, or token-like text, is stored as "".
+ */
+function claimLabel(value: unknown): string {
+  const checked = checkText("label", clip(value, LABEL_MAX), LABEL_MAX);
+  return checked.problems.length ? "" : checked.text;
+}
+
+/** The token's email claim, or null when it is missing, over EMAIL_MAX, unsafe text or not shaped like an address. */
+function claimEmail(value: unknown): string | null {
+  const checked = checkText("email", value, EMAIL_MAX);
+  return checked.problems.length === 0 && EMAIL_RE.test(checked.text) ? checked.text : null;
+}
+
 export async function requestRow(db: Reader, subject: string): Promise<any> {
   return await db.query("accessRequests").withIndex("by_subject", (q: any) => q.eq("subject", subject)).first();
 }
@@ -146,8 +165,10 @@ export async function revokeCore(db: Db, caller: Caller, args: { subject?: unkno
   if (row) await db.delete("members", row._id);
   for (const draft of batch) {
     const rev = draft.rev + 1;
-    await db.patch("drafts", draft._id, { assignee: to, rev, updatedAt: now });
-    await recordEvent(db, draft, owner.subject, "assign", { rev, assignee: { from: subject, to }, reason: "revoke" }, now);
+    // Nobody is assigned a story they submitted: the default assignee's own story goes to nobody instead.
+    const target = to === draft.submittedBy ? null : to;
+    await db.patch("drafts", draft._id, { assignee: target, rev, updatedAt: now });
+    await recordEvent(db, draft, owner.subject, "assign", { rev, assignee: { from: subject, to: target }, reason: "revoke" }, now);
   }
   return done({ moved: batch.length, more: assigned.length > REVOKE_MOVE_MAX });
 }
@@ -181,8 +202,8 @@ export async function requestAccessCore(
   const limited = await refuseIfLimited(db, person.subject, "access.request", now, "access requests in a day");
   if (limited) return limited;
 
-  const label = clip(args.name, LABEL_MAX);
-  const email = clip(args.email, EMAIL_MAX) || null;
+  const label = claimLabel(args.name);
+  const email = claimEmail(args.email);
   if (existing) await db.patch("accessRequests", existing._id, { label, email, note });
   else await db.insert("accessRequests", { subject: person.subject, label, email, note, requestedAt: now });
   await recordRate(db, person.subject, "access.request", now);

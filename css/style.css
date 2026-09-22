@@ -6,7 +6,7 @@
  *
  * Canonical tokens (colors, font, type scale, spacing, radii) come from the CDN:
  *   https://cdn.neorgon.org/v1.0.0/styles/base.css   (linked in index.html)
- * Do NOT redeclare them here — a local copy is how the fleet drifted. The block
+ * Do NOT redeclare them here: a local copy is how the fleet drifted. The block
  * below holds only what base.css does not define, plus the per-site accent.
  *
  * Motion: base.css still ships --ease-snap (bounce) for legacy sites, but it is
@@ -15,7 +15,7 @@
  */
 
 :root {
-  /* Per-site identity — set to this site's hub card accent (PROJECTS.md section 4) */
+  /* Per-site identity: set to this site's hub card accent (PROJECTS.md section 4) */
   --accent: #3b82f6;
   --accent-bright: #60a5fa;
   /* Darker accent for fills under white text: #fff on #3b82f6 is 3.68:1
@@ -44,7 +44,7 @@
 }
 
 /* Author display values (e.g. .section/.stack flex) would otherwise defeat the
-   hidden attribute — restore its authority once, globally. */
+   hidden attribute: restore its authority once, globally. */
 [hidden] { display: none !important; }
 
 html { height: 100%; }
@@ -71,7 +71,7 @@ main#main {
 /* ── Layout ────────────────────────────────────────────────── */
 /*
  * GOTCHA: body { display:flex; flex-direction:column } + margin: 0 auto
- * on a child collapses its width — always pair with width: 100%.
+ * on a child collapses its width: always pair with width: 100%.
  *
  * GOTCHA: External images (YouTube ggpht, Gravatar, etc.) may block loading
  * when the Referer header points to localhost or an unknown origin. Fix:
@@ -140,11 +140,11 @@ main#main {
 }
 
 /* ── Header ────────────────────────────────────────────────────
- * Owned by the Neorgon Header Kit (css/neorgon-header.css — canonical
+ * Owned by the Neorgon Header Kit (css/neorgon-header.css: canonical
  * source: packages/neorgon-ui/header/). Do NOT style .header-bar,
  * .header-logo*, .header-title-link, .header-subtitle, .header-right,
- * .header-actions, or .header-home here. Auth styles (.auth-*) stay
- * site-owned below.
+ * .header-actions, or .header-home here. The Auth Kit styles its own slot
+ * and dialogs (css/neorgon-auth.css), so no .auth-* rule lives here either.
  */
 nav {
   display: flex;
@@ -153,7 +153,7 @@ nav {
 }
 
 /* ── Buttons (canonical) ─────────────────────────────────────
- * Use .btn + a variant. Aliases: .nav-link = toolbar ghost; .auth-* map below.
+ * Use .btn + a variant. Alias: .nav-link = toolbar ghost.
  */
 .btn {
   display: inline-flex;
@@ -226,7 +226,7 @@ nav {
 }
 .btn--danger:hover { background: var(--danger-hover); }
 
-/* Toolbar ghost (header nav) — same as .btn.btn--ghost.btn--sm */
+/* Toolbar ghost (header nav): same as .btn.btn--ghost.btn--sm */
 .nav-link {
   display: inline-flex;
   align-items: center;
@@ -246,136 +246,6 @@ nav {
 .nav-link:hover {
   background: rgba(255,255,255,0.1);
   color: #fff;
-}
-
-.auth-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: var(--control-height);
-  min-height: var(--control-height);
-  padding: 0;
-  border: 1px solid rgba(255,255,255,0.18);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: rgba(255,255,255,0.92);
-  cursor: pointer;
-  font-family: inherit;
-  transition: background-color var(--dur), color var(--dur), border-color var(--dur);
-}
-.auth-toggle:hover {
-  background: rgba(255,255,255,0.1);
-  color: #fff;
-}
-.auth-toggle svg {
-  width: 22px;
-  height: 22px;
-  flex-shrink: 0;
-  display: block;
-}
-.auth-toggle.logged-in { color: var(--accent); }
-.auth-toggle.logged-in svg circle:nth-of-type(2) {
-  fill: currentColor;
-  stroke: none;
-}
-
-/* ── Sheet (inline panel under header) — not a modal ─────────
- * Use for auth, filters, compact forms. No backdrop; page scrolls.
- * For blocking overlays use .modal below.
- */
-.auth-panel {
-  background: rgba(255,255,255,0.02);
-  border-bottom: 1px solid var(--border-subtle);
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s ease-out;
-}
-.auth-panel.open { max-height: 300px; }
-.auth-panel-inner {
-  padding: var(--space-6);
-  max-width: 400px;
-  margin: 0 auto;
-}
-.auth-tabs {
-  display: flex;
-  gap: var(--space-2);
-  margin-bottom: var(--space-4);
-}
-.auth-tab {
-  flex: 1;
-  min-height: var(--control-height-sm);
-  padding: 0 var(--space-4);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-family: inherit;
-  font-size: var(--text-sm);
-  font-weight: 600;
-  transition: background-color var(--dur), color var(--dur), border-color var(--dur);
-}
-.auth-tab.active {
-  background: var(--surface-2);
-  color: var(--text-primary);
-  border-color: var(--border-strong);
-}
-.auth-form input {
-  width: 100%;
-  padding: var(--space-3) var(--space-4);
-  margin-bottom: var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--surface-1);
-  color: var(--text-primary);
-  font-size: var(--text-sm);
-  font-family: inherit;
-}
-.auth-submit {
-  width: 100%;
-  min-height: var(--control-height);
-  padding: 0 var(--space-4);
-  border: none;
-  border-radius: var(--radius-sm);
-  background: var(--accent);
-  color: #fff;
-  font-family: inherit;
-  font-weight: 600;
-  font-size: var(--text-sm);
-  cursor: pointer;
-  transition: background-color var(--dur);
-}
-.auth-submit:hover { background: var(--accent-bright); }
-#authUser {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-}
-.auth-username {
-  color: var(--text-primary);
-  font-weight: 600;
-}
-.auth-logout {
-  min-height: var(--control-height-sm);
-  padding: 0 var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-  font-family: inherit;
-  font-size: var(--text-sm);
-  font-weight: 600;
-  transition: background-color var(--dur), color var(--dur), border-color var(--dur);
-}
-.auth-logout:hover {
-  background: var(--surface-2);
-  color: var(--text-primary);
-}
-.auth-divider {
-  height: 1px;
-  background: var(--border-subtle);
 }
 
 /* ── Modal (blocking overlay) ──────────────────────────────── */
@@ -411,7 +281,7 @@ nav {
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-modal);
 }
-/* For modals holding option grids or editors — narrow dialogs cramp them */
+/* For modals holding option grids or editors: narrow dialogs cramp them */
 .modal__dialog--wide {
   width: min(100%, 760px);
 }
@@ -451,14 +321,14 @@ nav {
 
 /* ── Card ──────────────────────────────────────────────────── */
 /*
- * GOTCHA: backdrop-filter creates a stacking context — dropdowns inside
+ * GOTCHA: backdrop-filter creates a stacking context: dropdowns inside
  * a card can be clipped by a later card's stacking context. Fix by adding
  * position: relative; z-index: 10 to the card that owns the open dropdown.
  *
- * Default: static surface (no hover lift — avoids generic “dashboard demo”).
+ * Default: static surface (no hover lift: avoids generic “dashboard demo”).
  * Use .card--interactive for raised hover + entrance motion.
  *
- * GOTCHA: a <button> or <a> used AS a card does not inherit body text color —
+ * GOTCHA: a <button> or <a> used AS a card does not inherit body text color:
  * buttons default to canvas text (near-black), rendering invisible on the dark
  * bg. When a card is an interactive element, set color: var(--text-primary)
  * and font-family: var(--font) explicitly on it.
@@ -507,11 +377,7 @@ nav {
 /* ── Button press feedback ─────────────────────────────────── */
 button:active,
 .btn:active,
-.nav-link:active,
-.auth-toggle:active,
-.auth-tab:active,
-.auth-submit:active,
-.auth-logout:active {
+.nav-link:active {
   transform: scale(0.98);
   transition-duration: var(--dur-fast);
 }
@@ -556,7 +422,7 @@ button:active,
 
 /* ── Footer ────────────────────────────────────────────────────
    Owned by the Neorgon Footer Kit (css/neorgon-footer.css).
-   Don't add .neo-footer rules here — edit packages/neorgon-ui/footer/
+   Don't add .neo-footer rules here: edit packages/neorgon-ui/footer/
    and re-run sync-footer.sh. */
 
 /* ── Focus styles ──────────────────────────────────────────── */
@@ -887,22 +753,148 @@ body.is-embed main#main { padding: 0; }
 }
 .embed__open:hover { color: var(--text-primary); }
 
-/* ── Desk (desk.html, meaningful only on localhost) ────────── */
+/* ── Desk (desk.html) ──────────────────────────────────────── */
+/* The page state, the one-line notice after each action, and the account.
+   The Auth Kit styles its own slot and dialogs (css/neorgon-auth.css); nothing
+   here touches them. */
 .desk-banner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
   margin-bottom: 0;
   border-left: 3px solid var(--kind-fix);
   font-size: var(--text-sm);
   color: var(--text-secondary);
   line-height: 1.55;
 }
-.desk-banner code {
+.desk-banner[data-state="member"] { border-left-color: var(--kind-feature); }
+.desk-banner[data-state="signed-out"],
+.desk-banner[data-state="no-role"] { border-left-color: var(--accent); }
+.desk-banner[data-state="error"],
+.desk-banner[data-state="misconfigured"],
+.desk-banner[data-state="unverified"] { border-left-color: var(--danger); }
+.desk-notice {
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.desk-account {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+.desk-account strong { color: var(--text-primary); }
+.desk-account__id {
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.9em;
+  font-size: var(--text-xs);
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+.desk-account__state { color: var(--kind-feature); }
+
+/* ── Chips: a flag on a story or a run, never a control ────── */
+.desk-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 2px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.desk-chip--ok { border-color: var(--kind-feature); color: var(--kind-feature); }
+.desk-chip--warn { border-color: var(--kind-fix); color: var(--kind-fix); }
+.desk-chip--bad { border-color: var(--danger); color: var(--danger-hover); }
+
+/* ── Publishing status bar ─────────────────────────────────── */
+.desk-status {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.desk-status__run {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.desk-status__run a { color: var(--accent-bright); }
+.desk-status__error { color: var(--danger-hover); }
+.desk-status__warn { color: var(--kind-fix); }
+.desk-status__counts {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Lanes ─────────────────────────────────────────────────── */
+.desk-lanes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+.desk-lane {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.desk-lane__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+.desk-lane__title {
+  font-size: var(--text-lg);
+  font-weight: 600;
   color: var(--text-primary);
 }
+.desk-lane__count {
+  min-width: 1.75em;
+  padding: 0 var(--space-2);
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--text-secondary);
+}
+.desk-lane__lead,
+.desk-lane__empty {
+  max-width: 60ch;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+/* ── Story cards ───────────────────────────────────────────── */
 .draft { border-left: 3px solid var(--border-strong); margin-bottom: 0; }
 .draft--approved { border-left-color: var(--kind-feature); }
-.draft--rejected { border-left-color: var(--danger); opacity: 0.6; }
+.draft--publishing { border-left-color: var(--accent); }
+.draft--committed,
+.draft--live { border-left-color: var(--kind-launch); }
+.draft--spiked { border-left-color: var(--danger); opacity: 0.7; }
+.draft__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
 .draft__status {
   padding: 2px 10px;
   border-radius: 999px;
@@ -914,20 +906,52 @@ body.is-embed main#main { padding: 0; }
   color: var(--text-muted);
 }
 .draft--approved .draft__status { border-color: var(--kind-feature); color: var(--kind-feature); }
-.draft--rejected .draft__status { border-color: var(--danger); color: var(--danger); }
+.draft--spiked .draft__status { border-color: var(--danger); color: var(--danger-hover); }
+.draft__rev { font-variant-numeric: tabular-nums; }
+.draft__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+.draft__problems {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-top: var(--space-3);
+  padding-left: var(--space-6);
+  font-size: var(--text-sm);
+  color: var(--kind-fix);
+}
+.draft__when,
+.draft__note {
+  margin-top: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+.draft__note { color: var(--kind-fix); }
+.draft__actions { margin-top: var(--space-4); }
+.draft__editor {
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px dashed var(--border);
+}
 .draft__grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: var(--space-3);
-  margin: var(--space-4) 0;
+  margin-bottom: var(--space-4);
 }
-.draft__field {
+.draft__field,
+.desk-form__field {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
 }
 .draft__field--wide { grid-column: 1 / -1; }
-.draft__field label {
+.draft__field label,
+.desk-form__field > span,
+.desk-assign > span {
   font-size: var(--text-xs);
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -936,8 +960,13 @@ body.is-embed main#main { padding: 0; }
 }
 .draft__field input,
 .draft__field select,
-.draft__field textarea {
+.draft__field textarea,
+.desk-form__field input,
+.desk-form__field select,
+.desk-form__field textarea,
+.desk-assign select {
   width: 100%;
+  min-height: var(--control-height-sm);
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -946,11 +975,18 @@ body.is-embed main#main { padding: 0; }
   font-family: inherit;
   font-size: var(--text-sm);
 }
-.draft__field textarea {
+.draft__field textarea,
+.desk-form__field textarea {
   min-height: 88px;
   resize: vertical;
   line-height: 1.5;
 }
+.desk-assign {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.desk-assign select { width: auto; max-width: 16rem; padding-block: 0; }
 .draft__preview {
   margin-top: var(--space-4);
   padding-top: var(--space-4);
@@ -964,47 +1000,112 @@ body.is-embed main#main { padding: 0; }
   text-transform: uppercase;
   color: var(--text-muted);
 }
-.desk-publishbar {
-  position: sticky;
-  bottom: 0;
-  z-index: var(--z-sticky-header);
+.desk-new { margin-bottom: 0; }
+.desk-new__title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* ── People and settings (owners) ──────────────────────────── */
+.desk-people {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.desk-panel {
+  display: flex;
+  flex-direction: column;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-lg);
-  background: var(--surface-toast);
-  box-shadow: var(--shadow-modal);
+  margin-bottom: 0;
 }
-.desk-publishbar__count {
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
+.desk-panel h3 {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--text-primary);
 }
-.desk-publishbar__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-.published-list {
+.desk-people__list {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
 }
-.published-list li {
+.desk-people__list li {
   display: flex;
-  align-items: baseline;
-  gap: var(--space-3);
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border-subtle);
   font-size: var(--text-sm);
   color: var(--text-secondary);
 }
-.published-list time {
-  flex-shrink: 0;
-  font-size: var(--text-xs);
+.desk-people__list li:last-child { border-bottom: 0; }
+.desk-people__note {
+  flex-basis: 100%;
   color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
+}
+/* An access request whose account carries no usable name: the desk's words, not a label. */
+.desk-people__unnamed {
+  font-style: italic;
+  color: var(--text-muted);
+}
+.desk-people__empty {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.desk-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+.desk-form__field { flex: 1 1 180px; }
+.desk-form__field--wide { flex-basis: 100%; }
+
+/* ── Confirm dialog (native <dialog>) ──────────────────────── */
+.desk-dialog {
+  width: min(560px, calc(100vw - 2 * var(--space-4)));
+  max-height: min(85vh, 680px);
+  margin: auto;
+  padding: var(--space-6);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface-toast);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-modal);
+}
+.desk-dialog::backdrop {
+  background: rgba(2, 4, 12, 0.8);
+}
+.desk-dialog__title {
+  margin-bottom: var(--space-2);
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+.desk-dialog__lead {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.desk-dialog__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-height: 40vh;
+  margin-top: var(--space-4);
+  padding-left: var(--space-6);
+  overflow: auto;
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+.desk-dialog__actions {
+  justify-content: flex-end;
+  margin-top: var(--space-6);
 }
 
+@media (max-width: 600px) {
+  /* grows to the line, and leaves room for its Assign button beside it */
+  .desk-assign { flex: 1 1 auto; min-width: 0; }
+  .desk-assign select { flex: 1; min-width: 0; max-width: none; }
+  .desk-dialog { padding: var(--space-4); }
+}

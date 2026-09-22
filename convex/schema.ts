@@ -83,7 +83,9 @@ export default defineSchema({
   }).index("by_draft", ["draftId", "at"]).index("by_at", ["at"]),
 
   // state: queued, dispatched, claimed, pushed, built, done, failed.
-  // trigger: approve, now, retry, push, reconcile.
+  // trigger: approve, now, retry, push, reconcile, or dryrun for a run a
+  // dry-run claim created. by_trigger is how the pause after a failed run,
+  // Retry and lastRun find the newest run that is not a dry run's.
   publishRuns: defineTable({
     state: v.string(),
     trigger: v.string(),
@@ -99,7 +101,7 @@ export default defineSchema({
     error: v.union(v.string(), v.null()),
     createdAt: v.number(),
     updatedAt: v.number(),
-  }).index("by_state", ["state", "updatedAt"]),
+  }).index("by_state", ["state", "updatedAt"]).index("by_trigger", ["trigger"]),
 
   publishedIds: defineTable({
     storyId: v.string(),

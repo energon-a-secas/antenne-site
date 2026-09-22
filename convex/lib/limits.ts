@@ -33,8 +33,17 @@ export const LIMIT_NAMES: readonly LimitName[] = Object.freeze(Object.keys(LIMIT
 
 /** Stories in one POST /submit. */
 export const SUBMIT_BATCH_MAX = 12;
-/** Pending drafts with source machine; past this /submit answers queue-full. */
+/**
+ * Pending drafts the machine keys hold between them, each configured key
+ * counted through by_submittedBy; past this /submit answers queue-full. Desk
+ * drafts never count toward it.
+ */
 export const MACHINE_PENDING_MAX = 40;
+/**
+ * Pending drafts one person may hold, counted through by_submittedBy; past
+ * this drafts:submit answers queue-full (the review decision of 2026-09-22).
+ */
+export const DESK_PENDING_MAX = 20;
 /** Pending access requests; past this a new request answers queue-full. */
 export const REQUESTS_MAX = 50;
 /** Items in one drafts:approveMany. */

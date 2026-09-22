@@ -203,7 +203,7 @@ await section('assertMachineSeparation passes the shipped table, trips on a bad 
 // the status. draft.assign and draft.overrideLinks name no status in the
 // contract; the desk allows them on pending and approved, and on pending.
 const DRAFT_ACTIONS = {
-  'draft.edit': [(role) => (role === 'submitter' ? ['pending'] : ['pending', 'approved']), (db, c, id) => editCore(db, c, { draftId: id, expectedRev: 1, patch: { title: 'A sharper title' } }, T0, ENV)],
+  'draft.edit': [(role) => (role === 'submitter' ? ['pending'] : ['pending', 'approved']), async (db, c, id) => (await editCore(db, c, { draftId: id, expectedRev: 1, patch: { title: 'A sharper title' } }, T0, ENV)).result],
   'draft.approve': [() => ['pending'], async (db, c, id) => (await approveCore(db, c, { draftId: id, expectedRev: 1 }, T0, ENV)).result],
   'draft.spike': [() => ['pending', 'approved'], (db, c, id) => spikeCore(db, c, { draftId: id, expectedRev: 1, note: 'Not news' }, T0, ENV)],
   'draft.withdraw': [() => ['approved'], (db, c, id) => withdrawCore(db, c, { draftId: id, expectedRev: 1 }, T0, ENV)],
@@ -285,7 +285,7 @@ await section('DESK_DENY takes the role from an owner and from a member, everywh
     eq((await meCore(db, caller, {}, T0, env)).role, null, `${subject}: desk:me says no role`);
     eq((await queueCore(db, caller, {}, T0, env)).drafts, [], `${subject}: desk:queue is empty`);
     const calls = {
-      edit: () => editCore(db, caller, { draftId: id, expectedRev: 1, patch: { title: 'Denied' } }, T0, env),
+      edit: async () => (await editCore(db, caller, { draftId: id, expectedRev: 1, patch: { title: 'Denied' } }, T0, env)).result,
       approve: async () => (await approveCore(db, caller, { draftId: id, expectedRev: 1 }, T0, env)).result,
       submit: () => submitCore(db, caller, { post: { ...POST, id: '2026-09-14-denied' } }, T0, env),
       grant: () => grantCore(db, caller, { subject: 'user_x1', role: 'editor', label: 'X' }, T0, env),
@@ -318,7 +318,7 @@ await section('DESK_FROZEN=1 refuses every mutation with frozen and writes nothi
     const rev = { expectedRev: 1 };
     const calls = {
       'drafts:submit': () => submitCore(db, owner, { post: { ...POST, id: '2026-09-14-frozen' } }, T0, env),
-      'drafts:edit': () => editCore(db, owner, { draftId: pending, ...rev, patch: { title: 'Frozen' } }, T0, env),
+      'drafts:edit': async () => (await editCore(db, owner, { draftId: pending, ...rev, patch: { title: 'Frozen' } }, T0, env)).result,
       'drafts:approve': async () => (await approveCore(db, owner, { draftId: pending, ...rev }, T0, env)).result,
       'drafts:approveMany': async () => (await approveManyCore(db, owner, { items: [{ draftId: pending, ...rev }] }, T0, env)).result,
       'drafts:withdraw': () => withdrawCore(db, owner, { draftId: approved, ...rev }, T0, env),

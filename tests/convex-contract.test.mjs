@@ -65,7 +65,7 @@ await section('the numbers of section 4.4, and of 4.3 and 6.1, as the contract w
   }, 'per subject 30 submits and 600 writes an hour and 3 access requests a day; per machine key 60 submits, 120 status and 120 publish calls an hour');
   eq([...limits.LIMIT_NAMES], ['draft.submit', 'draft.write', 'access.request', 'machine.submit', 'machine.status', 'machine.publish'], 'the six limit names');
   const CAPS = {
-    SUBMIT_BATCH_MAX: 12, MACHINE_PENDING_MAX: 40, REQUESTS_MAX: 50, APPROVE_MANY_MAX: 25, CLAIM_MAX: 25, BODY_MAX_BYTES: 64000,
+    SUBMIT_BATCH_MAX: 12, MACHINE_PENDING_MAX: 40, DESK_PENDING_MAX: 20, REQUESTS_MAX: 50, APPROVE_MANY_MAX: 25, CLAIM_MAX: 25, BODY_MAX_BYTES: 64000,
     SIGNATURE_WINDOW_MS: 300000, PUBLISH_DELAY_DEFAULT_MS: 300000, PUBLISH_DELAY_MAX_MS: 1800000, RUN_MAX_ATTEMPTS: 5,
     DISPATCH_STALE_MS: 1200000, CLAIM_STALE_MS: 1800000,
   };
@@ -135,6 +135,31 @@ await section('every exported query, mutation or action in convex/*.ts resolves 
   eq(accessProblems(fn('query', '    return { ok: true };', '// access: open (a health check that reads no desk data)\n')), [], 'an open comment with a reason passes');
   eq(accessProblems(fn('action', '    const c = await resolveCaller(ctx.db, null, {});\n    return aCore(ctx.db, c);')), [], 'resolving and calling a core passes');
   eq(accessProblems('export const a = internalMutation({ handler: async () => 1 });\nexport const b = httpAction(async () => new Response());'), [], 'internal functions and HTTP actions are not browser-callable queries or mutations');
+});
+
+// Cores never read process.env, so each wrapper file copies the desk variables
+// itself; one copy that loses DESK_DENY keeps a denied owner an owner. A file
+// that resolves callers or reads the owner or deny list copies all three. The
+// behaviour behind this is swept in tests/convex-members.test.mjs; this is the
+// backstop for internal functions, which that sweep does not call.
+const DESK_VARS = ['DESK_OWNERS', 'DESK_DENY', 'DESK_FROZEN'];
+function envProblems(name, source) {
+  const code = blank(source);
+  if (!/\bresolveCaller\(|\bprocess\.env\.DESK_(?:OWNERS|DENY)\b/.test(code)) return [];
+  return DESK_VARS.filter((k) => !new RegExp(`\\b${k}\\s*:\\s*process\\.env\\.${k}\\b`).test(code)).map((k) => `${name}: does not copy ${k} from process.env`);
+}
+await section('every convex/*.ts that resolves callers copies DESK_OWNERS, DESK_DENY and DESK_FROZEN from process.env', () => {
+  const top = list('convex', (n) => /^convex\/[^/]+\.ts$/.test(n));
+  const bare = (f) => blank(read(f)).replace(/\bprocess\.env\.DESK_\w+/g, 'undefined');
+  eq(Object.keys(WRAPPERS).map((f) => envProblems(f, bare(f)).length), [3, 3, 3, 3], 'the rule reaches the four desk wrappers: with their copies gone, each trips three times');
+  eq(top.flatMap((f) => envProblems(f, read(f))), [], `${top.length} files copy all three where they need them`);
+  const env = 'function deskEnv(): DeskEnv {\n  return { DESK_OWNERS: process.env.DESK_OWNERS, DESK_DENY: process.env.DESK_DENY, DESK_FROZEN: process.env.DESK_FROZEN };\n}\nconst c = await resolveCaller(ctx.db, s, deskEnv());\n';
+  eq(envProblems('convex/x.ts', env), [], 'all three copied passes');
+  eq(envProblems('convex/x.ts', swap(env, ' DESK_DENY: process.env.DESK_DENY,', '')), ['convex/x.ts: does not copy DESK_DENY from process.env'], 'dropping DESK_DENY trips');
+  eq(envProblems('convex/x.ts', swap(env, 'DESK_FROZEN: process.env.DESK_FROZEN', 'DESK_FROZEN: undefined')), ['convex/x.ts: does not copy DESK_FROZEN from process.env'], 'DESK_FROZEN set to anything else trips');
+  eq(envProblems('convex/x.ts', swap(env, 'DESK_OWNERS: process.env.DESK_OWNERS', 'DESK_OWNERS: process.env.DESK_DENY')), ['convex/x.ts: does not copy DESK_OWNERS from process.env'], 'a key copied from the wrong variable trips');
+  eq(envProblems('convex/x.ts', `// DESK_DENY: process.env.DESK_DENY\n${swap(env, ' DESK_DENY: process.env.DESK_DENY,', '')}`).length, 1, 'a copy only in a comment trips');
+  eq(envProblems('convex/http.ts', 'const e = { MACHINE_KEYS: process.env.MACHINE_KEYS, DESK_FROZEN: process.env.DESK_FROZEN };'), [], 'a machine route that only reads DESK_FROZEN is not held to it');
 });
 
 // ── No secret and no unsafeMetadata in convex/ or js/ ───────────────────────
@@ -231,6 +256,28 @@ const attr = (tag, name) => {
   const m = tag.match(new RegExp(`\\s${name}="([^"]*)"`));
   return m ? m[1] : null;
 };
+// Section 7's desk.html policy, literally. The Convex host is not in it: the
+// checks above let it into connect-src only, and only when the meta is set.
+// Every other directive must be exactly this; script-src may be narrower (a
+// source dropped, or a path under one of its hosts) but never wider.
+const SECTION_7_CSP = "default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' https://clerk.neorgon.com https://challenges.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.neorgon.org https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://cdn.neorgon.org https://img.clerk.com; connect-src 'self' https://clerk.neorgon.com; frame-src https://challenges.cloudflare.com; worker-src blob:; upgrade-insecure-requests";
+const cspDirectives = (text) => text.split(';').map((d) => d.trim().split(/\s+/)).filter((d) => d[0]).map(([n, ...s]) => [n, s]);
+function policyProblems(content) {
+  const want = new Map(cspDirectives(SECTION_7_CSP));
+  const got = cspDirectives(content).map(([n, s]) => [n, s.filter((x) => !/convex\.(cloud|site)/.test(x))]);
+  const names = got.map(([n]) => n);
+  const problems = [...new Set(names.filter((n, i) => names.indexOf(n) !== i))].map((n) => `the CSP names ${n} twice`);
+  for (const n of want.keys()) if (!names.includes(n)) problems.push(`the CSP has no ${n}`);
+  for (const [n, sources] of got) {
+    if (!want.has(n)) { problems.push(`the CSP adds ${n}, which section 7 does not have`); continue; }
+    const allowed = want.get(n);
+    const hosts = allowed.filter((s) => s.startsWith('https://'));
+    const extra = sources.filter((s) => !allowed.includes(s) && !(n === 'script-src' && hosts.some((h) => s.startsWith(`${h}/`))));
+    const missing = n === 'script-src' ? [] : allowed.filter((s) => !sources.includes(s));
+    if (extra.length || missing.length) problems.push(`${n} is not section 7's:${extra.length ? ` adds ${extra.join(' ')}` : ''}${missing.length ? ` lacks ${missing.join(' ')}` : ''}`);
+  }
+  return problems;
+}
 // The frame check in its usual spellings: top and self compared either way round, then the page hidden.
 const FRAME_CHECK = /if\s*\(\s*(?:(?:window\.)?top\s*!==?\s*(?:window\.)?self|(?:window\.)?self\s*!==?\s*(?:window\.)?top)\s*\)\s*\{?\s*document\.documentElement\.style\.(?:setProperty\(\s*(['"])display\1\s*,\s*(['"])none\2|display\s*=\s*(['"])none\3)/;
 function deskProblems(html, boot) {
@@ -249,6 +296,7 @@ function deskProblems(html, boot) {
   else if (url && JSON.stringify(hosts) !== JSON.stringify([`connect-src ${url}`])) problems.push(`the CSP must name ${url} in connect-src and nowhere else, and no other Convex host`);
   if ((directives.get('script-src') || []).includes("'unsafe-inline'")) problems.push("script-src allows 'unsafe-inline'");
   if (JSON.stringify(directives.get('object-src')) !== JSON.stringify(["'none'"])) problems.push("object-src is not 'none'");
+  problems.push(...policyProblems(attr(csp[0], 'content')));
   const inline = tags('script').filter((t) => attr(t, 'src') === null).length;
   if (inline) problems.push(`${inline} script element(s) without src`);
   const analytics = metas('neo-analytics');
@@ -262,7 +310,7 @@ function deskProblems(html, boot) {
   else if (cookie >= 0 && cookie < guard) problems.push('js/theme-boot.js reads document.cookie before the frame check');
   return problems;
 }
-await section('desk.html: the Convex URL and its CSP host agree, no inline script, object-src none, no analytics; theme-boot hides a frame first', () => {
+await section('desk.html: section 7\'s CSP and no wider, the Convex URL and its CSP host agree, no inline script, object-src none, no analytics; theme-boot hides a frame first', () => {
   const html = read('desk.html');
   const boot = read('js/theme-boot.js');
   eq(deskProblems(html, boot), [], 'desk.html and js/theme-boot.js as they are');
@@ -276,8 +324,22 @@ await section('desk.html: the Convex URL and its CSP host agree, no inline scrip
   eq(deskProblems(swap(wired, `${cloud};`, `${cloud} https://other-otter-9.convex.cloud;`), boot).length, 1, 'a second Convex host trips');
   eq(deskProblems(swap(wired, "script-src 'self'", `script-src 'self' ${cloud}`), boot).length, 1, 'the host outside connect-src trips');
   eq(deskProblems(swap(wired, `content="${cloud}"`, 'content="https://evil.example.com"'), boot).length, 1, 'a meta that is no Convex URL trips');
-  eq(deskProblems(swap(html, "script-src 'self'", "script-src 'self' 'unsafe-inline'"), boot), ["script-src allows 'unsafe-inline'"], "'unsafe-inline' trips");
-  eq(deskProblems(swap(html, "object-src 'none'; ", ''), boot), ["object-src is not 'none'"], 'a missing object-src trips');
+  eq(deskProblems(swap(html, "script-src 'self'", "script-src 'self' 'unsafe-inline'"), boot), ["script-src allows 'unsafe-inline'", "script-src is not section 7's: adds 'unsafe-inline'"], "'unsafe-inline' trips");
+  eq(deskProblems(swap(html, "object-src 'none'; ", ''), boot), ["object-src is not 'none'", 'the CSP has no object-src'], 'a missing object-src trips');
+  const widened = [
+    ["default-src 'self'", 'default-src *', ["default-src is not section 7's: adds * lacks 'self'"]],
+    ['frame-src https://challenges.cloudflare.com', 'frame-src *', ["frame-src is not section 7's: adds * lacks https://challenges.cloudflare.com"]],
+    ['https://cdn.jsdelivr.net;', 'https://cdn.jsdelivr.net https:;', ["script-src is not section 7's: adds https:"]],
+    ['https://cdn.jsdelivr.net;', 'https://cdn.jsdelivr.net.evil.example;', ["script-src is not section 7's: adds https://cdn.jsdelivr.net.evil.example"]],
+    ["connect-src 'self' https://clerk.neorgon.com;", "connect-src 'self' https://clerk.neorgon.com https:;", ["connect-src is not section 7's: adds https:"]],
+    ["img-src 'self' data:", "img-src 'self' data: blob:", ["img-src is not section 7's: adds blob:"]],
+    ["base-uri 'self'; ", '', ['the CSP has no base-uri']],
+    ['upgrade-insecure-requests', 'upgrade-insecure-requests; script-src-elem *', ['the CSP adds script-src-elem, which section 7 does not have']],
+    ['upgrade-insecure-requests', "upgrade-insecure-requests; default-src 'self'", ['the CSP names default-src twice']],
+  ];
+  for (const [from, to, want] of widened) eq(deskProblems(swap(html, from, to), boot), want, `${to} trips`);
+  eq(deskProblems(swap(html, 'https://cdn.jsdelivr.net;', 'https://cdn.jsdelivr.net/npm/convex@1.45.0/;'), boot), [], 'a script-src narrowed to a path under one of its hosts passes');
+  eq(deskProblems(swap(html, "script-src 'self' https://clerk.neorgon.com", "script-src 'self'"), boot), [], 'and so does a script-src with a source dropped');
   eq(deskProblems(swap(html, '</body>', '<script>void 0</script></body>'), boot), ['1 script element(s) without src'], 'an inline script trips');
   eq(deskProblems(swap(html, '<meta name="neo-analytics" content="off">', '<meta name="neo-analytics" content="on">'), boot), ['neo-analytics is not off'], 'analytics on trips');
   eq(deskProblems(swap(html, '<meta name="neo-convex-url" content="">', ''), boot), ['neo-convex-url meta: found 0, expected 1'], 'a missing meta trips');

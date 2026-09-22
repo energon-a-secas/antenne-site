@@ -1,7 +1,7 @@
 # ── macOS ─────────────────────────────────────────────────────────────────────
 .DS_Store
 
-# ── Playwright MCP (Claude Code browser automation — screenshots, logs) ───────
+# ── Playwright MCP (Claude Code browser automation: screenshots, logs) ───────
 .playwright-mcp/
 
 # ── Playwright test artifacts ─────────────────────────────────────────────────
@@ -13,7 +13,7 @@ blob-report/
 node_modules/
 npm-debug.log*
 
-# ── Secrets — never commit ────────────────────────────────────────────────────
+# ── Secrets, never commit ─────────────────────────────────────────────────────
 .env
 .env.*
 # …but the credentials TEMPLATE is repo content: a fresh clone needs it
@@ -37,8 +37,12 @@ __pycache__/
 # ── Archived skills (scripts/prune-skills.sh) ─────────────────────────────────
 skills-archived/
 
-# ── Dispatch drafts — the approval queue, never repo content ──────────────────
-# The /newsroom command writes candidate stories here and the desk (desk.html,
-# meaningful only on localhost) reads them. This repo is public: a story enters
-# it only by being approved into data/posts.json.
+# ── Convex generated code ─────────────────────────────────────────────────────
+# npx convex deploy writes it from convex/*.ts; it is never committed
+# (docs/plans/2026-09-15-antenne-desk.md section 2, in the Neorgon monorepo).
+# Drafts are not files any more: they live in the desk's Convex backend, and a
+# story enters this public repo only when the publish workflow commits it to
+# data/posts.json.
+convex/_generated/
+# Guard: nothing writes data/drafts/ now, but a stale one from the old /newsroom flow must never be committed.
 data/drafts/
