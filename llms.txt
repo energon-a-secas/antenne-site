@@ -4,7 +4,7 @@
 
 - Live: https://dispatch.neorgon.com/
 - Part of the Neorgon tool suite (free, no signup, runs in your browser): https://neorgon.com/
-- Keywords: static-site, news, rss
+- Keywords: static-site, news, rss, convex, auth, clerk
 
 ## More Neorgon tools
 
