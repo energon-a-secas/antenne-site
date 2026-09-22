@@ -311,9 +311,18 @@ function deskProblems(html, boot) {
   return problems;
 }
 await section('desk.html: section 7\'s CSP and no wider, the Convex URL and its CSP host agree, no inline script, object-src none, no analytics; theme-boot hides a frame first', () => {
-  const html = read('desk.html');
+  const real = read('desk.html');
   const boot = read('js/theme-boot.js');
-  eq(deskProblems(html, boot), [], 'desk.html and js/theme-boot.js as they are');
+  eq(deskProblems(real, boot), [], 'desk.html and js/theme-boot.js as they are');
+  // Section 7 allows two states: the empty meta this repo ships, and the URL plus
+  // its connect-src host that setup-antenne.sh stage 2 writes. The mutants below
+  // start from the empty one, derived from the file, so they trip in either state.
+  const live = (real.match(/<meta name="neo-convex-url" content="([^"]*)">/) || [])[1] || '';
+  const html = live
+    ? real.replace(`<meta name="neo-convex-url" content="${live}">`, '<meta name="neo-convex-url" content="">').replace(` ${live};`, ';')
+    : real;
+  eq(deskProblems(html, boot), [], live ? 'and with the deployment URL taken back out' : 'the meta is empty, so that is the same file');
+  eq(/neo-convex-url" content=""/.test(html) && /connect-src 'self' https:\/\/clerk\.neorgon\.com;/.test(html), true, 'the mutants start from an empty meta and a Convex-free connect-src');
   const cloud = 'https://happy-otter-123.convex.cloud';
   const connect = "connect-src 'self' https://clerk.neorgon.com;";
   const set = swap(html, '<meta name="neo-convex-url" content="">', `<meta name="neo-convex-url" content="${cloud}">`);

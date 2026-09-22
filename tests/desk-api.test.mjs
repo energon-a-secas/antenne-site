@@ -69,7 +69,11 @@ for (const bad of [' ', 'http://happy-otter-123.convex.cloud', `${PROD}/`, 'http
 }
 eq(A.convexUrlFrom(null), null, 'no document at all is no backend, not an error');
 const deskMeta = /<meta name="neo-convex-url" content="([^"]*)">/.exec(read('desk.html'));
-eq(deskMeta && deskMeta[1], '', 'desk.html ships the meta empty, so the committed desk reads as "not set up"');
+// Section 9 stage 2 has the wizard write the deployment URL here and commit it,
+// so both are legal: empty before the setup, that deployment after it. The CSP
+// pairing is what tests/convex-contract.test.mjs holds.
+eq(deskMeta !== null && (deskMeta[1] === '' || A.CONVEX_URL_RE.test(deskMeta[1])), true,
+  'desk.html ships the meta empty, or set to the deployment the wizard wrote');
 
 // ── loadClient: the pinned build, cached, and a failed load retried ─────────
 let mode = 'ok';

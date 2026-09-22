@@ -164,8 +164,16 @@ export function fakeKit(first, { label = 'Label', token = null } = {}) {
 }
 
 // ── The page, and a desk started on it ─────────────────────────────────────
-export const HTML = readFileSync(new URL('../../desk.html', import.meta.url), 'utf8');
+const HTML_FILE = readFileSync(new URL('../../desk.html', import.meta.url), 'utf8');
 const URL_SET = 'https://happy-otter-123.convex.cloud';
+// Once setup-antenne.sh stage 2 has run, the committed desk.html names a real
+// deployment in its meta and connect-src (section 9 stage 2). The harness always
+// starts from the not-set-up page and puts URL_SET in itself, so take that back
+// out here rather than depending on which state the tree is in.
+const LIVE = (HTML_FILE.match(/<meta name="neo-convex-url" content="([^"]*)">/) || [])[1] || '';
+export const HTML = LIVE
+  ? HTML_FILE.replace(`content="${LIVE}"`, 'content=""').replace(` ${LIVE};`, ';')
+  : HTML_FILE;
 export const intervals = [];
 globalThis.setInterval = (fn, ms) => { intervals.push({ fn, ms, live: true }); return intervals.length; };
 globalThis.clearInterval = (id) => { if (intervals[id - 1]) intervals[id - 1].live = false; };
