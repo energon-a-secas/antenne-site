@@ -233,7 +233,12 @@ try:
     with section("--check fails on a stale stamp"):
         site = make_site()
         index = os.path.join(site, "index.html")
-        write_text(index, read_text(index).replace("30 stories<!-- /gen:edition -->", "29 stories<!-- /gen:edition -->"))
+        # Read the count out of the stamp rather than pinning it: the archive grows
+        # every time a story publishes, and a pinned number turns each publish red.
+        shown = re.search(r"(\d+) stories<!-- /gen:edition -->", read_text(index))
+        write_text(index, read_text(index).replace(
+            "%s stories<!-- /gen:edition -->" % shown.group(1),
+            "%d stories<!-- /gen:edition -->" % (int(shown.group(1)) - 1)))
         code, out, err = run(site, "--check")
         eq([code, "stale" in err], [1, True], "exit 1, naming the stale stamp")
 
@@ -409,8 +414,12 @@ try:
         eq(written == json.dumps(expected, indent=2, ensure_ascii=False) + "\n", True,
            "posts.json is json.dumps(doc, indent=2, ensure_ascii=False) plus a newline, sorted by (date, id), updated set to --today")
         ids = [p["id"] for p in json.loads(written)["posts"]]
-        eq(ids[:2], [archive["posts"][0]["id"], "2026-09-09-marker-merge"], "a new date slots in between its neighbours")
-        eq(ids[2:2 + len(by_date("2026-09-08")) + 2],
+        # Positions are counted, never pinned: every published story shifts them.
+        after_09 = len([p for p in expected["posts"] if p["date"] > "2026-09-09"])
+        eq([ids[0], ids[after_09]], [expected["posts"][0]["id"], "2026-09-09-marker-merge"],
+           "a new date slots in between its neighbours")
+        after_08 = len([p for p in expected["posts"] if p["date"] > "2026-09-08"])
+        eq(ids[after_08:after_08 + len(by_date("2026-09-08")) + 2],
            sorted(by_date("2026-09-08") + ["2026-09-08-zz-marker", "2026-09-08-r-marker"], reverse=True),
            "on a shared date, ids sort descending among the existing ones")
         eq(ids[-1], "2020-01-01-marker-old", "desk mode has no date window, so an old story merges, last")
