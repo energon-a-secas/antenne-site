@@ -8,7 +8,7 @@
         "id": "2026-09-10-base-story",
         "date": "2026-09-10",
         "kind": "feature",
-        "site": "dispatch-site",
+        "site": "antenne-site",
         "title": "A story for the vectors",
         "summary": "One sentence that says what changed.",
         "body": [
@@ -18,7 +18,7 @@
         "links": [
           {
             "label": "Antenne",
-            "url": "https://dispatch.neorgon.com/"
+            "url": "https://antenne.neorgon.com/"
           }
         ],
         "tags": [
@@ -26,8 +26,8 @@
           "vectors"
         ]
       },
-      "canonical": "{\"body\":[\"A first paragraph.\",\"A second paragraph.\"],\"date\":\"2026-09-10\",\"id\":\"2026-09-10-base-story\",\"kind\":\"feature\",\"links\":[{\"label\":\"Antenne\",\"url\":\"https://dispatch.neorgon.com/\"}],\"site\":\"dispatch-site\",\"summary\":\"One sentence that says what changed.\",\"tags\":[\"fleet\",\"vectors\"],\"title\":\"A story for the vectors\"}",
-      "sha256": "c6c42cec60b460d03e955716ed1e350ff1223738936b81689cdbe75cb790172e"
+      "canonical": "{\"body\":[\"A first paragraph.\",\"A second paragraph.\"],\"date\":\"2026-09-10\",\"id\":\"2026-09-10-base-story\",\"kind\":\"feature\",\"links\":[{\"label\":\"Antenne\",\"url\":\"https://antenne.neorgon.com/\"}],\"site\":\"antenne-site\",\"summary\":\"One sentence that says what changed.\",\"tags\":[\"fleet\",\"vectors\"],\"title\":\"A story for the vectors\"}",
+      "sha256": "5e887b38c7f81380bd10d3363d37971910f1fb7c4911767235eef3ebf16b131c"
     },
     {
       "name": "a fleet-wide story with nothing optional",

@@ -12,8 +12,8 @@
       "secret": "rbnB1JzBC1uIH3W2GmX7y1rd0zWIqMelfhJ8J66V2HA=",
       "timestamp": "1789000000",
       "path": "/submit",
-      "body": "{\"stories\":[{\"id\":\"2026-09-15-antenne-desk\",\"date\":\"2026-09-15\",\"kind\":\"launch\",\"site\":\"dispatch-site\",\"title\":\"The desk opens\",\"summary\":\"Drafts go to a private queue.\",\"body\":[\"One paragraph.\"],\"links\":[{\"label\":\"Desk\",\"url\":\"https://dispatch.neorgon.com/desk.html\"}],\"tags\":[\"desk\"]}]}",
-      "signature": "jhOn7VY4LKQv/IgzI1cEWRWnljUSLc4pWo/PLk0XXBA="
+      "body": "{\"stories\":[{\"id\":\"2026-09-15-antenne-desk\",\"date\":\"2026-09-15\",\"kind\":\"launch\",\"site\":\"antenne-site\",\"title\":\"The desk opens\",\"summary\":\"Drafts go to a private queue.\",\"body\":[\"One paragraph.\"],\"links\":[{\"label\":\"Desk\",\"url\":\"https://antenne.neorgon.com/desk.html\"}],\"tags\":[\"desk\"]}]}",
+      "signature": "e+/kiUSCIxRjIzMehSFKbtH53/GfWWO0H6Vyf6F5w1g="
     },
     {
       "name": "watch signs an empty object for /status",
@@ -37,8 +37,8 @@
       "secret": "i1ZwLAs2rKafG+ctJ80Szyh/Jf7cAEPs6CMAfTkGWR+0VuX5sGjnR1p3h/zj217g",
       "timestamp": "1789000456",
       "path": "/submit",
-      "body": "{\"stories\":[{\"id\":\"2026-09-15-café\",\"date\":\"2026-09-15\",\"kind\":\"launch\",\"site\":\"dispatch-site\",\"title\":\"Café € 😀\",\"summary\":\"Drafts go to a private queue.\",\"body\":[\"One paragraph.\"],\"links\":[{\"label\":\"Desk\",\"url\":\"https://dispatch.neorgon.com/desk.html\"}],\"tags\":[\"desk\"]}]}",
-      "signature": "bD5lK6aRoDgnz6QcP5ecGduV52PTun50C0PBL9XU+sk="
+      "body": "{\"stories\":[{\"id\":\"2026-09-15-café\",\"date\":\"2026-09-15\",\"kind\":\"launch\",\"site\":\"antenne-site\",\"title\":\"Café € 😀\",\"summary\":\"Drafts go to a private queue.\",\"body\":[\"One paragraph.\"],\"links\":[{\"label\":\"Desk\",\"url\":\"https://antenne.neorgon.com/desk.html\"}],\"tags\":[\"desk\"]}]}",
+      "signature": "83fEK18B8MFFMw2VZqIKsKkLyhBI+S84WfGKHYHmNcs="
     },
     {
       "name": "gh signs a claim for /publish/claim",
@@ -49,8 +49,8 @@
       "secret": "O+ki8i5iKeXdVzxVA7DUAVTjXsz59m2CSZItrqrXTww=",
       "timestamp": "1789000789",
       "path": "/publish/claim",
-      "body": "{\"runId\":null,\"ghRunId\":\"123456\",\"runUrl\":\"https://github.com/energon-a-secas/dispatch-site/actions/runs/123456\"}",
-      "signature": "AQaRFDWz5a4CCQaWgUiqdmDQvFoP0U8PK26WBqSK9GY="
+      "body": "{\"runId\":null,\"ghRunId\":\"123456\",\"runUrl\":\"https://github.com/energon-a-secas/antenne-site/actions/runs/123456\"}",
+      "signature": "73cbuIo9youZnOfH95idM+f8zxvYM6JH40y30yvjq0Y="
     },
     {
       "name": "an empty body is signed too",

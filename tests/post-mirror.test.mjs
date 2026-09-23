@@ -172,7 +172,7 @@ await section('the vectors hold every host, scheme and path section 3.2 names, e
   const named = ['a.1', '999.1.1.1', '1.2.3.4', 'a_b.neorgon.com', 'neorgon.com.', 'a..b.neorgon.com', '%6eeorgon.com',
     '-a.neorgon.com', 'xn--bcher-kva.neorgon.com', 'xn--a.neorgon.com', 'a.0x1', 'a.b2'];
   for (const host of named) eq(codes('https://' + host + '/'), [['format']], `the host ${host}: one vector, refused as format`);
-  for (const scheme of ['HTTPS://', 'Https://']) eq(codes(scheme + 'dispatch.neorgon.com/'), [['scheme']], `the scheme ${scheme}: one vector, refused as scheme`);
+  for (const scheme of ['HTTPS://', 'Https://']) eq(codes(scheme + 'antenne.neorgon.com/'), [['scheme']], `the scheme ${scheme}: one vector, refused as scheme`);
   eq(codes('https://github.com/energon-a-secas/../x'), [['format']], 'the path /energon-a-secas/../x: one vector, refused as format');
 });
 
