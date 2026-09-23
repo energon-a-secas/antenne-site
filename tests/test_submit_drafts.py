@@ -447,7 +447,7 @@ try:
 
     with section("--status prints counts, ids, ages, the last run and the token expiry, each in its shape, and nothing else the site says"):
         good_run = {"runId": "jd7abc123", "state": "failed", "trigger": "approve", "attempts": 5, "followUp": False, "createdAt": 1,
-                    "updatedAt": 2, "ageMs": 3, "runUrl": "https://github.com/energon-a-secas/dispatch-site/actions/runs/123",
+                    "updatedAt": 2, "ageMs": 3, "runUrl": "https://github.com/energon-a-secas/antenne-site/actions/runs/123",
                     "commitSha": "a" * 40, "error": "dispatch 401", "stories": 2}
         bad_run = {"runId": "run %s" % MARK, "state": MARK, "trigger": "x\n%s" % MARK, "attempts": "5", "followUp": "no", "createdAt": True,
                    "updatedAt": None, "ageMs": 1.5, "runUrl": "https://evil.example/%s" % MARK, "commitSha": MARK,

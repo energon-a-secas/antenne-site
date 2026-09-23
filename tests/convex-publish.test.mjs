@@ -42,7 +42,7 @@ const [OWNER, EDITOR, REVIEWER, SUBMITTER, STRANGER] = ['user_owner', 'user_edit
 const ENV = Object.freeze({ DESK_OWNERS: OWNER, GITHUB_DISPATCH_TOKEN_EXPIRES: '2027-01-31' });
 const FROZEN = Object.freeze({ ...ENV, DESK_FROZEN: '1' });
 const GH = access.machineCaller('gh', ['publish']);
-const URL42 = 'https://github.com/energon-a-secas/dispatch-site/actions/runs/42/attempts/1';
+const URL42 = 'https://github.com/energon-a-secas/antenne-site/actions/runs/42/attempts/1';
 
 // Convex's db.normalizeId, for the fake's "table:n" ids: the cores take run and draft ids as text.
 const world = () => Object.assign(createFakeDb(), { normalizeId: (table, id) => (typeof id === 'string' && id.startsWith(`${table}:`) ? id : null) });
@@ -331,8 +331,8 @@ await section('dispatchRequest: the request section 6.1 names; 200 or 204 dispat
   eq(await net.dispatchRequest(fake(reply(204)), TOKEN, 'publishRuns:3'), { kind: 'ok', status: 204, ghRunId: null, runUrl: null }, '204: dispatched');
   const { url, init } = calls[0];
   eq([url, init.method, init.headers, JSON.parse(init.body), init.signal instanceof AbortSignal], [net.DISPATCH_URL, 'POST', { Authorization: `Bearer ${TOKEN}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'antenne-desk', 'Content-Type': 'application/json' }, { ref: 'main', inputs: { run_id: 'publishRuns:3' } }, true], 'POST to the publish.yml dispatch URL with the four headers and an abort signal');
-  eq(net.DISPATCH_URL, 'https://api.github.com/repos/energon-a-secas/dispatch-site/actions/workflows/publish.yml/dispatches', 'the URL, literally');
-  eq(await net.dispatchRequest(fake(reply(200, { workflow_run_id: 99, html_url: 'https://github.com/energon-a-secas/dispatch-site/actions/runs/99' })), TOKEN, 'r'), { kind: 'ok', status: 200, ghRunId: '99', runUrl: 'https://github.com/energon-a-secas/dispatch-site/actions/runs/99' }, '200: the run id and page recorded');
+  eq(net.DISPATCH_URL, 'https://api.github.com/repos/energon-a-secas/antenne-site/actions/workflows/publish.yml/dispatches', 'the URL, literally');
+  eq(await net.dispatchRequest(fake(reply(200, { workflow_run_id: 99, html_url: 'https://github.com/energon-a-secas/antenne-site/actions/runs/99' })), TOKEN, 'r'), { kind: 'ok', status: 200, ghRunId: '99', runUrl: 'https://github.com/energon-a-secas/antenne-site/actions/runs/99' }, '200: the run id and page recorded');
   eq(await net.dispatchRequest(fake(reply(200, { html_url: 'javascript:alert(1)' })), TOKEN, 'r'), { kind: 'ok', status: 200, ghRunId: null, runUrl: null }, 'a page that is not a GitHub run page is dropped');
   eq(await net.dispatchRequest(fake(reply(401)), TOKEN, 'r'), { kind: 'status', status: 401 }, 'any other status is a failure');
   eq(await net.dispatchRequest(fake(() => { throw new Error(`connect failed with Bearer ${TOKEN}`); }), TOKEN, 'r'), { kind: 'error', error: 'network' }, 'a thrown error is the word network, whatever its message holds');
@@ -358,7 +358,7 @@ await section('readArchive, checkLive and verifyCommit hashes: archive-normalize
   const got = await net.readArchive(fake, net.LIVE_URL);
   eq([got.ok, got.complete, got.stories.map((s) => s.storyId), got.stories[0].contentHash === (await contentHash(posts[0]))], [true, false, ['2026-09-15-one', '2026-09-15-two'], true], 'ids and hashes; a post the archive refuses makes the read incomplete');
   eq([(await net.readArchive(async () => reply(404), 'x')).error, (await net.readArchive(async () => reply(200, 'not json'), 'x')).error, (await net.readArchive(async () => { throw new TypeError('fetch failed'); }, 'x')).error], ['404', 'format', 'network'], 'failures are short codes');
-  eq([net.rawArchiveUrl(SHA), net.LIVE_URL], [`https://raw.githubusercontent.com/energon-a-secas/dispatch-site/${SHA}/data/posts.json`, 'https://dispatch.neorgon.com/data/posts.json'], 'the two archives section 6.1 reads');
+  eq([net.rawArchiveUrl(SHA), net.LIVE_URL], [`https://raw.githubusercontent.com/energon-a-secas/antenne-site/${SHA}/data/posts.json`, 'https://dispatch.neorgon.com/data/posts.json'], 'the two archives section 6.1 reads');
   const db = world();
   const one = await draft(db, 'one', { ...due(), status: 'committed' });
   const two = await draft(db, 'two', { ...due(), status: 'committed', approvedHash: 'e'.repeat(64) });

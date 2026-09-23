@@ -58,7 +58,7 @@ jobs:
         with:
           app-id: ${{ vars.ANTENNE_APP_ID }}
           private-key: ${{ secrets.ANTENNE_APP_PRIVATE_KEY }}
-          repositories: dispatch-site
+          repositories: antenne-site
           permission-contents: write
 
       - name: Publish approved stories

@@ -16,7 +16,7 @@ import { GH_RUN_ID_RE, RUN_URL_RE } from "./publishCore.ts";
 
 export type FetchLike = (url: string, init?: Record<string, any>) => Promise<{ status: number; json(): Promise<unknown>; text(): Promise<string> }>;
 
-export const REPO = "energon-a-secas/dispatch-site";
+export const REPO = "energon-a-secas/antenne-site";
 export const DISPATCH_URL = `https://api.github.com/repos/${REPO}/actions/workflows/publish.yml/dispatches`;
 export const LIVE_URL = "https://dispatch.neorgon.com/data/posts.json";
 export const DISPATCH_TIMEOUT_MS = 10000;

@@ -40,8 +40,8 @@ SECRET = base64.b64encode(hashlib.sha256(b"publish-approved test key").digest())
 KEY = "gh:" + SECRET
 BOT = "antenne-publisher[bot]"
 BOT_ID = 4242
-RUN_URL = "https://github.com/energon-a-secas/dispatch-site/actions/runs/77/attempts/1"
-PAGES = "/repos/energon-a-secas/dispatch-site/pages/builds"
+RUN_URL = "https://github.com/energon-a-secas/antenne-site/actions/runs/77/attempts/1"
+PAGES = "/repos/energon-a-secas/antenne-site/pages/builds"
 GUARDED = ["data/posts.json", "feed.xml", "index.html"]
 
 failed = 0
@@ -807,7 +807,7 @@ try:
         wanted = ["branches: [main]", "run_id:", "dry_run:", "group: antenne-publish", "cancel-in-progress: false", "contents: read", "pages: write",
                   "issues: write", "environment: antenne-publish", "timeout-minutes: 20", "persist-credentials: false", "fetch-depth: 0",
                   "if: ${{ !inputs.dry_run }}", "app-id: ${{ vars.ANTENNE_APP_ID }}", "private-key: ${{ secrets.ANTENNE_APP_PRIVATE_KEY }}",
-                  "repositories: dispatch-site", "permission-contents: write", "ANTENNE_CONVEX_SITE: ${{ vars.ANTENNE_CONVEX_SITE }}",
+                  "repositories: antenne-site", "permission-contents: write", "ANTENNE_CONVEX_SITE: ${{ vars.ANTENNE_CONVEX_SITE }}",
                   "ANTENNE_KEY: ${{ secrets.ANTENNE_PUBLISH_KEY }}", "RUN_ID: ${{ inputs.run_id }}", "APP_TOKEN: ${{ steps.app-token.outputs.token }}",
                   "GITHUB_TOKEN: ${{ github.token }}", "run: python3 scripts/publish-approved.py run", "if: failure()", "if: success()"]
         eq([w for w in wanted if w not in lines], [], "triggers, concurrency, permissions, environment, the token step and the script's env")
