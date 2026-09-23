@@ -93,7 +93,7 @@ class section:
 def story(slug, **over):
     post = {"id": "%s-%s" % (TODAY, slug), "date": TODAY, "kind": "feature", "site": "dispatch-site",
             "title": "A title %s" % MARK, "summary": "A summary %s." % MARK, "body": ["A paragraph %s." % MARK],
-            "links": [{"label": "Desk", "url": "https://dispatch.neorgon.com/desk.html"}], "tags": ["desk"]}
+            "links": [{"label": "Desk", "url": "https://antenne.neorgon.com/desk.html"}], "tags": ["desk"]}
     post.update(over)
     return post
 
@@ -107,7 +107,7 @@ def at_caps(slug, ch):
     return {"id": fill(pid, "x", 80), "date": TODAY, "kind": "feature", "site": "s" * 40,
             "title": fill("T %s " % MARK, ch, 100), "summary": fill("S %s " % MARK, ch, 320),
             "body": [fill("P%d %s " % (i, MARK), ch, 900) for i in range(5)],
-            "links": [{"label": fill("L%d " % i, ch, 40), "url": fill("https://dispatch.neorgon.com/%d/" % i, "a", 300)} for i in range(6)],
+            "links": [{"label": fill("L%d " % i, ch, 40), "url": fill("https://antenne.neorgon.com/%d/" % i, "a", 300)} for i in range(6)],
             "tags": [fill("t%d-" % i, "x", 32) for i in range(8)]}
 
 
@@ -322,7 +322,7 @@ try:
         try:
             # Keys reversed, text padded, no site: build-feed.py's normalized
             # post differs from this file in all three ways, and is what goes.
-            raw = {"tags": ["desk"], "links": [{"label": " Desk ", "url": "https://dispatch.neorgon.com/desk.html"}],
+            raw = {"tags": ["desk"], "links": [{"label": " Desk ", "url": "https://antenne.neorgon.com/desk.html"}],
                    "body": ["  A paragraph %s.  " % MARK], "summary": " A summary. ", "title": "  A title %s  " % MARK,
                    "kind": "feature", "date": TODAY, "id": "%s-padded" % TODAY}
             path = write_json(site, "padded.json", raw)

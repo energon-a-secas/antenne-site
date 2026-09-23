@@ -300,7 +300,7 @@ try:
     def story(**patch):
         s = {"id": "2026-09-14-marker-story", "date": "2026-09-14", "kind": "note", "site": "marker-site",
              "title": "MARKER-TITLE story", "summary": "MARKER-SUMMARY line.", "body": ["MARKER-BODY paragraph."],
-             "links": [{"label": "MARKER-LABEL", "url": "https://dispatch.neorgon.com/marker-url-path"}], "tags": ["marker-tag"]}
+             "links": [{"label": "MARKER-LABEL", "url": "https://antenne.neorgon.com/marker-url-path"}], "tags": ["marker-tag"]}
         s.update(patch)
         return s
 
@@ -647,7 +647,7 @@ try:
 
         doc = json.loads(ARCHIVE_TEXT)
         target = next(i for i, p in enumerate(doc["posts"]) if p["links"])
-        padded = {"label": "  Padded label ", "url": "https://dispatch.neorgon.com/padded", "rel": "me"}
+        padded = {"label": "  Padded label ", "url": "https://antenne.neorgon.com/padded", "rel": "me"}
         doc["posts"][target]["links"].insert(0, padded)
         eq([bf.validate_post(doc["posts"][target], "archive")["post"]["links"][0], bf.validate_post(doc["posts"][target], "read")["post"]["links"][0]],
            [{"label": "Padded label", "url": padded["url"]}, {"label": "  Padded label ", "url": padded["url"]}],
@@ -661,17 +661,17 @@ try:
         eq(run(site, "--check")[0], 0, "--check agrees")
 
         doc = json.loads(ARCHIVE_TEXT)
-        doc["posts"][target]["links"] = [{"label": '<b>&"quoted"</b>', "url": "https://dispatch.neorgon.com/?a=1&b='x'"}]
+        doc["posts"][target]["links"] = [{"label": '<b>&"quoted"</b>', "url": "https://antenne.neorgon.com/?a=1&b='x'"}]
         site = make_site()
         dump_json(os.path.join(site, "data", "posts.json"), doc)
         eq(run(site)[0], 0, "a url with & and ' in its query, and a label holding markup, build")
         index = read_text(os.path.join(site, "index.html"))
-        eq(["href=\"https://dispatch.neorgon.com/?a=1&amp;b='x'\"" in index,
+        eq(["href=\"https://antenne.neorgon.com/?a=1&amp;b='x'\"" in index,
             ">&lt;b&gt;&amp;&quot;quoted&quot;&lt;/b&gt; ↗</a>" in index, '<b>&"quoted"</b>' in index],
            [True, True, False], "and both are stamped as escaped text")
 
         doc = json.loads(ARCHIVE_TEXT)
-        doc["posts"][target]["links"] = [{"label": "Markup", "url": 'https://dispatch.neorgon.com/"><script>stamp()</script>'}]
+        doc["posts"][target]["links"] = [{"label": "Markup", "url": 'https://antenne.neorgon.com/"><script>stamp()</script>'}]
         site = make_site()
         dump_json(os.path.join(site, "data", "posts.json"), doc)
         code, out, err = run(site)

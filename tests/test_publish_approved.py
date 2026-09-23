@@ -87,7 +87,7 @@ ARCHIVE = json.load(open(os.path.join(ROOT, "data", "posts.json"), encoding="utf
 def raw_story(slug, **over):
     post = {"id": "2026-09-15-%s" % slug, "date": "2026-09-15", "kind": "feature", "site": "dispatch-site",
             "title": "A title %s" % MARK, "summary": "A summary %s." % MARK, "body": ["A paragraph %s." % MARK],
-            "links": [{"label": "Desk", "url": "https://dispatch.neorgon.com/desk.html"}], "tags": ["desk"]}
+            "links": [{"label": "Desk", "url": "https://antenne.neorgon.com/desk.html"}], "tags": ["desk"]}
     post.update(over)
     return post
 

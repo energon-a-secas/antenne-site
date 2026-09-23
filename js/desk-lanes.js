@@ -104,7 +104,7 @@ function whenHtml(d, now) {
   }
   if (d.status === 'publishing') return escHtml('Publishing now: a run has claimed it');
   if (d.status === 'committed') return escHtml('Committed' + (typeof d.commitSha === 'string' ? ' as ' + d.commitSha.slice(0, 7) : '') + ', waiting to show on the live site');
-  if (d.status === 'live') return escHtml('Live on dispatch.neorgon.com');
+  if (d.status === 'live') return escHtml('Live on antenne.neorgon.com');
   if (typeof d.submittedAt === 'number') return escHtml('Submitted ') + agoHtml(d.submittedAt, now);
   return '';
 }

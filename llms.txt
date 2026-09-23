@@ -2,7 +2,7 @@
 
 > Fleet launches, features, and updates as a news feed
 
-- Live: https://dispatch.neorgon.com/
+- Live: https://antenne.neorgon.com/
 - Part of the Neorgon tool suite (free, no signup, runs in your browser): https://neorgon.com/
 - Keywords: static-site, news, rss, convex, auth, clerk
 

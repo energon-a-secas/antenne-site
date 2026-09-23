@@ -358,7 +358,7 @@ await section('readArchive, checkLive and verifyCommit hashes: archive-normalize
   const got = await net.readArchive(fake, net.LIVE_URL);
   eq([got.ok, got.complete, got.stories.map((s) => s.storyId), got.stories[0].contentHash === (await contentHash(posts[0]))], [true, false, ['2026-09-15-one', '2026-09-15-two'], true], 'ids and hashes; a post the archive refuses makes the read incomplete');
   eq([(await net.readArchive(async () => reply(404), 'x')).error, (await net.readArchive(async () => reply(200, 'not json'), 'x')).error, (await net.readArchive(async () => { throw new TypeError('fetch failed'); }, 'x')).error], ['404', 'format', 'network'], 'failures are short codes');
-  eq([net.rawArchiveUrl(SHA), net.LIVE_URL], [`https://raw.githubusercontent.com/energon-a-secas/antenne-site/${SHA}/data/posts.json`, 'https://dispatch.neorgon.com/data/posts.json'], 'the two archives section 6.1 reads');
+  eq([net.rawArchiveUrl(SHA), net.LIVE_URL], [`https://raw.githubusercontent.com/energon-a-secas/antenne-site/${SHA}/data/posts.json`, 'https://antenne.neorgon.com/data/posts.json'], 'the two archives section 6.1 reads');
   const db = world();
   const one = await draft(db, 'one', { ...due(), status: 'committed' });
   const two = await draft(db, 'two', { ...due(), status: 'committed', approvedHash: 'e'.repeat(64) });

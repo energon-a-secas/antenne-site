@@ -32,4 +32,4 @@ User-agent: anthropic-ai
 Allow: /
 Disallow: /desk.html
 
-Sitemap: https://dispatch.neorgon.com/sitemap.xml
+Sitemap: https://antenne.neorgon.com/sitemap.xml

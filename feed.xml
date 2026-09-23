@@ -2,14 +2,14 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Antenne: Neorgon fleet news</title>
-    <link>https://dispatch.neorgon.com/</link>
-    <atom:link href="https://dispatch.neorgon.com/feed.xml" rel="self" type="application/rss+xml"/>
+    <link>https://antenne.neorgon.com/</link>
+    <atom:link href="https://antenne.neorgon.com/feed.xml" rel="self" type="application/rss+xml"/>
     <description>Launches, features, and fixes across the Neorgon fleet, approved at the desk before publishing</description>
     <language>en</language>
-    <lastBuildDate>Wed, 23 Sep 2026 00:22:50 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 23 Sep 2026 12:14:44 +0000</lastBuildDate>
     <item>
       <title>2FA Forced on Energon-a-secas</title>
-      <link>https://dispatch.neorgon.com/#p=2026-09-22-2fa</link>
+      <link>https://antenne.neorgon.com/#p=2026-09-22-2fa</link>
       <guid isPermaLink="false">2026-09-22-2fa</guid>
       <pubDate>Tue, 22 Sep 2026 12:00:00 +0000</pubDate>
       <category>note</category>
@@ -17,7 +17,7 @@
     </item>
     <item>
       <title>Three sites, one way to sign in</title>
-      <link>https://dispatch.neorgon.com/#p=2026-09-10-three-sites-one-way-to-sign-in</link>
+      <link>https://antenne.neorgon.com/#p=2026-09-10-three-sites-one-way-to-sign-in</link>
       <guid isPermaLink="false">2026-09-10-three-sites-one-way-to-sign-in</guid>
       <pubDate>Thu, 10 Sep 2026 12:00:00 +0000</pubDate>
       <category>feature</category>
@@ -25,7 +25,7 @@
     </item>
     <item>
       <title>What you miss today is a card tomorrow</title>
-      <link>https://dispatch.neorgon.com/#p=2026-09-08-your-misses-become-a-deck</link>
+      <link>https://antenne.neorgon.com/#p=2026-09-08-your-misses-become-a-deck</link>
       <guid isPermaLink="false">2026-09-08-your-misses-become-a-deck</guid>
       <pubDate>Tue, 08 Sep 2026 12:00:00 +0000</pubDate>
       <category>feature</category>
@@ -33,7 +33,7 @@
     </item>
     <item>
       <title>Two shelves arrive: Vitrina and Bouquin</title>
-      <link>https://dispatch.neorgon.com/#p=2026-09-08-vitrina-and-bouquin-arrive</link>
+      <link>https://antenne.neorgon.com/#p=2026-09-08-vitrina-and-bouquin-arrive</link>
       <guid isPermaLink="false">2026-09-08-vitrina-and-bouquin-arrive</guid>
       <pubDate>Tue, 08 Sep 2026 12:00:00 +0000</pubDate>
       <category>launch</category>
@@ -41,7 +41,7 @@
     </item>
     <item>
       <title>The Japanese Book grows to fourteen chapters</title>
-      <link>https://dispatch.neorgon.com/#p=2026-09-08-the-japanese-book-grows-to-fourteen-chapters</link>
+      <link>https://antenne.neorgon.com/#p=2026-09-08-the-japanese-book-grows-to-fourteen-chapters</link>
       <guid isPermaLink="false">2026-09-08-the-japanese-book-grows-to-fourteen-chapters</guid>
       <pubDate>Tue, 08 Sep 2026 12:00:00 +0000</pubDate>
       <category>feature</category>
@@ -49,7 +49,7 @@
     </item>
     <item>
       <title>Quiz learns rows, Spanish, and an optional clock</title>
-      <link>https://dispatch.neorgon.com/#p=2026-09-08-quiz-learns-rows-spanish-and-a-clock</link>
+      <link>https://antenne.neorgon.com/#p=2026-09-08-quiz-learns-rows-spanish-and-a-clock</link>
       <guid isPermaLink="false">2026-09-08-quiz-learns-rows-spanish-and-a-clock</guid>
       <pubDate>Tue, 08 Sep 2026 12:00:00 +0000</pubDate>
       <category>feature</category>
@@ -57,7 +57,7 @@
     </item>
     <item>
       <title>Runcible, Rappel and Quiz open on the same afternoon</title>
-      <link>https://dispatch.neorgon.com/#p=2026-09-07-three-learning-sites-open</link>
+      <link>https://antenne.neorgon.com/#p=2026-09-07-three-learning-sites-open</link>
       <guid isPermaLink="false">2026-09-07-three-learning-sites-open</guid>
       <pubDate>Mon, 07 Sep 2026 12:00:00 +0000</pubDate>
       <category>launch</category>
@@ -65,7 +65,7 @@
     </item>
     <item>
       <title>Space scrolls again on every keyboard-kit site</title>
-      <link>https://dispatch.neorgon.com/#p=2026-09-07-a-declined-key-keeps-its-default</link>
+      <link>https://antenne.neorgon.com/#p=2026-09-07-a-declined-key-keeps-its-default</link>
       <guid isPermaLink="false">2026-09-07-a-declined-key-keeps-its-default</guid>
       <pubDate>Mon, 07 Sep 2026 12:00:00 +0000</pubDate>
       <category>fix</category>
@@ -73,7 +73,7 @@
     </item>
     <item>
       <title>Mosaic crops, and turns without leaking the background</title>
-      <link>https://dispatch.neorgon.com/#p=2026-09-05-mosaic-crops-and-turns-cleanly</link>
+      <link>https://antenne.neorgon.com/#p=2026-09-05-mosaic-crops-and-turns-cleanly</link>
       <guid isPermaLink="false">2026-09-05-mosaic-crops-and-turns-cleanly</guid>
       <pubDate>Sat, 05 Sep 2026 12:00:00 +0000</pubDate>
       <category>feature</category>
@@ -81,7 +81,7 @@
     </item>
     <item>
       <title>Every site is installable again</title>
-      <link>https://dispatch.neorgon.com/#p=2026-09-05-every-site-is-installable-again</link>
+      <link>https://antenne.neorgon.com/#p=2026-09-05-every-site-is-installable-again</link>
       <guid isPermaLink="false">2026-09-05-every-site-is-installable-again</guid>
       <pubDate>Sat, 05 Sep 2026 12:00:00 +0000</pubDate>
       <category>fix</category>
@@ -89,7 +89,7 @@
     </item>
     <item>
       <title>Three more on the way: Runcible, Rappel and Quiz</title>
-      <link>https://dispatch.neorgon.com/#p=2026-09-04-three-more-on-the-way</link>
+      <link>https://antenne.neorgon.com/#p=2026-09-04-three-more-on-the-way</link>
       <guid isPermaLink="false">2026-09-04-three-more-on-the-way</guid>
       <pubDate>Fri, 04 Sep 2026 12:00:00 +0000</pubDate>
       <category>note</category>
@@ -97,7 +97,7 @@
     </item>
     <item>
       <title>The dash hunt learns to read code</title>
-      <link>https://dispatch.neorgon.com/#p=2026-09-01-the-dash-hunt-learns-to-read-code</link>
+      <link>https://antenne.neorgon.com/#p=2026-09-01-the-dash-hunt-learns-to-read-code</link>
       <guid isPermaLink="false">2026-09-01-the-dash-hunt-learns-to-read-code</guid>
       <pubDate>Tue, 01 Sep 2026 12:00:00 +0000</pubDate>
       <category>fix</category>
@@ -105,7 +105,7 @@
     </item>
     <item>
       <title>One set of keyboard shortcuts, everywhere</title>
-      <link>https://dispatch.neorgon.com/#p=2026-09-01-one-set-of-keys</link>
+      <link>https://antenne.neorgon.com/#p=2026-09-01-one-set-of-keys</link>
       <guid isPermaLink="false">2026-09-01-one-set-of-keys</guid>
       <pubDate>Tue, 01 Sep 2026 12:00:00 +0000</pubDate>
       <category>feature</category>
@@ -113,7 +113,7 @@
     </item>
     <item>
       <title>Aficion learns your ties</title>
-      <link>https://dispatch.neorgon.com/#p=2026-09-01-aficion-learns-your-ties</link>
+      <link>https://antenne.neorgon.com/#p=2026-09-01-aficion-learns-your-ties</link>
       <guid isPermaLink="false">2026-09-01-aficion-learns-your-ties</guid>
       <pubDate>Tue, 01 Sep 2026 12:00:00 +0000</pubDate>
       <category>feature</category>
@@ -121,7 +121,7 @@
     </item>
     <item>
       <title>Aficion opens the atlas</title>
-      <link>https://dispatch.neorgon.com/#p=2026-08-31-aficion-opens-the-atlas</link>
+      <link>https://antenne.neorgon.com/#p=2026-08-31-aficion-opens-the-atlas</link>
       <guid isPermaLink="false">2026-08-31-aficion-opens-the-atlas</guid>
       <pubDate>Mon, 31 Aug 2026 12:00:00 +0000</pubDate>
       <category>launch</category>
@@ -129,7 +129,7 @@
     </item>
     <item>
       <title>Every site gets one way home</title>
-      <link>https://dispatch.neorgon.com/#p=2026-08-29-one-way-home</link>
+      <link>https://antenne.neorgon.com/#p=2026-08-29-one-way-home</link>
       <guid isPermaLink="false">2026-08-29-one-way-home</guid>
       <pubDate>Sat, 29 Aug 2026 12:00:00 +0000</pubDate>
       <category>feature</category>
@@ -137,7 +137,7 @@
     </item>
     <item>
       <title>Echeance watches the clock</title>
-      <link>https://dispatch.neorgon.com/#p=2026-08-29-echeance-watches-the-clock</link>
+      <link>https://antenne.neorgon.com/#p=2026-08-29-echeance-watches-the-clock</link>
       <guid isPermaLink="false">2026-08-29-echeance-watches-the-clock</guid>
       <pubDate>Sat, 29 Aug 2026 12:00:00 +0000</pubDate>
       <category>launch</category>
@@ -145,7 +145,7 @@
     </item>
     <item>
       <title>Balise collects the corrections</title>
-      <link>https://dispatch.neorgon.com/#p=2026-08-29-balise-collects-the-corrections</link>
+      <link>https://antenne.neorgon.com/#p=2026-08-29-balise-collects-the-corrections</link>
       <guid isPermaLink="false">2026-08-29-balise-collects-the-corrections</guid>
       <pubDate>Sat, 29 Aug 2026 12:00:00 +0000</pubDate>
       <category>launch</category>
@@ -153,7 +153,7 @@
     </item>
     <item>
       <title>Four sites open in one day</title>
-      <link>https://dispatch.neorgon.com/#p=2026-08-28-four-open-in-one-day</link>
+      <link>https://antenne.neorgon.com/#p=2026-08-28-four-open-in-one-day</link>
       <guid isPermaLink="false">2026-08-28-four-open-in-one-day</guid>
       <pubDate>Fri, 28 Aug 2026 12:00:00 +0000</pubDate>
       <category>launch</category>
@@ -161,7 +161,7 @@
     </item>
     <item>
       <title>Resume Forge opens its second wave</title>
-      <link>https://dispatch.neorgon.com/#p=2026-08-26-resume-forge-wave-two</link>
+      <link>https://antenne.neorgon.com/#p=2026-08-26-resume-forge-wave-two</link>
       <guid isPermaLink="false">2026-08-26-resume-forge-wave-two</guid>
       <pubDate>Wed, 26 Aug 2026 12:00:00 +0000</pubDate>
       <category>note</category>

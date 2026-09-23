@@ -18,7 +18,7 @@ Fleet launches, features, and updates as a news feed
 [badge-claude]:  https://img.shields.io/badge/Claude_Code-CC785C?style=for-the-badge&logo=anthropic&logoColor=white
 [badge-license]: https://img.shields.io/badge/license-MIT-404040?style=for-the-badge
 
-[url-site]:   https://dispatch.neorgon.com/
+[url-site]:   https://antenne.neorgon.com/
 [url-html]:   #
 [url-css]:    #
 [url-js]:     #
@@ -41,7 +41,7 @@ Stories are **submitted** straight to a private queue, **reviewed** on
 and **published** by a workflow that commits them to `data/posts.json`. Nobody
 saves a file or runs git to publish a story.
 
-**Live:** [dispatch.neorgon.com](https://dispatch.neorgon.com/)
+**Live:** [antenne.neorgon.com](https://antenne.neorgon.com/)
 
 ---
 

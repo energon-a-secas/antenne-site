@@ -18,7 +18,7 @@ export type FetchLike = (url: string, init?: Record<string, any>) => Promise<{ s
 
 export const REPO = "energon-a-secas/antenne-site";
 export const DISPATCH_URL = `https://api.github.com/repos/${REPO}/actions/workflows/publish.yml/dispatches`;
-export const LIVE_URL = "https://dispatch.neorgon.com/data/posts.json";
+export const LIVE_URL = "https://antenne.neorgon.com/data/posts.json";
 export const DISPATCH_TIMEOUT_MS = 10000;
 export const LINK_TIMEOUT_MS = 8000;
 export const ARCHIVE_TIMEOUT_MS = 15000;

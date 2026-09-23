@@ -34,7 +34,7 @@ INDEX = ROOT / "index.html"
 POST_VECTORS = ROOT / "tests" / "post-vectors.json"
 HASH_VECTORS = ROOT / "tests" / "hash-vectors.json"
 
-SITE_URL = "https://dispatch.neorgon.com/"
+SITE_URL = "https://antenne.neorgon.com/"
 FEED_ITEMS = 20
 # The id js/data.js looks the stamped archive up by. Both ends have to agree or
 # the page loads with no stories at all, so it is written once here.
