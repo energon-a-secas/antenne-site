@@ -6,7 +6,15 @@
     <atom:link href="https://antenne.neorgon.com/feed.xml" rel="self" type="application/rss+xml"/>
     <description>Launches, features, and fixes across the Neorgon fleet, approved at the desk before publishing</description>
     <language>en</language>
-    <lastBuildDate>Wed, 23 Sep 2026 12:14:44 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 24 Sep 2026 15:01:24 +0000</lastBuildDate>
+    <item>
+      <title>Antenne has its own address</title>
+      <link>https://antenne.neorgon.com/#p=2026-09-23-antenne-has-its-own-address</link>
+      <guid isPermaLink="false">2026-09-23-antenne-has-its-own-address</guid>
+      <pubDate>Wed, 23 Sep 2026 12:00:00 +0000</pubDate>
+      <category>note</category>
+      <description>The fleet news feed moved from dispatch.neorgon.com to antenne.neorgon.com. The old address keeps working: it forwards here, and its feed points readers at this one.</description>
+    </item>
     <item>
       <title>2FA Forced on Energon-a-secas</title>
       <link>https://antenne.neorgon.com/#p=2026-09-22-2fa</link>
@@ -158,14 +166,6 @@
       <pubDate>Fri, 28 Aug 2026 12:00:00 +0000</pubDate>
       <category>launch</category>
       <description>Releve, Scalpel, Enjeu and Cadrage all went live on the same day. A transcript pricer, a skill dissector, a print-and-play boss rush, and a camera settings trainer.</description>
-    </item>
-    <item>
-      <title>Resume Forge opens its second wave</title>
-      <link>https://antenne.neorgon.com/#p=2026-08-26-resume-forge-wave-two</link>
-      <guid isPermaLink="false">2026-08-26-resume-forge-wave-two</guid>
-      <pubDate>Wed, 26 Aug 2026 12:00:00 +0000</pubDate>
-      <category>note</category>
-      <description>The delivery board is open again: Resume Forge is getting a second campaign, with contracts frozen and workstreams assigned.</description>
     </item>
   </channel>
 </rss>

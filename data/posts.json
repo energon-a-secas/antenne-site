@@ -1,8 +1,31 @@
 {
   "version": 1,
   "site": "dispatch",
-  "updated": "2026-09-23",
+  "updated": "2026-09-24",
   "posts": [
+    {
+      "id": "2026-09-23-antenne-has-its-own-address",
+      "date": "2026-09-23",
+      "kind": "note",
+      "site": "antenne-site",
+      "title": "Antenne has its own address",
+      "summary": "The fleet news feed moved from dispatch.neorgon.com to antenne.neorgon.com. The old address keeps working: it forwards here, and its feed points readers at this one.",
+      "body": [
+        "The site, its repository and its folder were all still called dispatch while the thing everyone read was called Antenne. They now agree: the feed lives at antenne.neorgon.com.",
+        "Nothing published changes identity. Every story keeps its id, so a reader who already has one does not get it twice, and the archive is untouched. The old address keeps its DNS record and forwards each path to the same page here.",
+        "Subscribers do not have to do anything. The old feed stays reachable and names this one as its home, which is how a feed reader is told to follow a move."
+      ],
+      "links": [
+        {
+          "label": "Antenne",
+          "url": "https://antenne.neorgon.com/"
+        }
+      ],
+      "tags": [
+        "antenne",
+        "fleet"
+      ]
+    },
     {
       "id": "2026-09-22-2fa",
       "date": "2026-09-22",
