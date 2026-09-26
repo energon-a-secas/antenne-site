@@ -233,7 +233,8 @@ a read-only snapshot of the shared `convex` JWT template; the four machine keys
 (`MACHINE_KEYS`); the dispatch token that lets Convex start `publish.yml`; the
 GitHub App `antenne-publisher`, the only identity that pushes to `main`; this
 repo's `antenne-publish` environment (`ANTENNE_PUBLISH_KEY`,
-`ANTENNE_APP_PRIVATE_KEY`, `ANTENNE_APP_ID`, `ANTENNE_CONVEX_SITE`); the
+`ANTENNE_APP_PRIVATE_KEY`, `ANTENNE_APP_ID`, `ANTENNE_APP_CLIENT_ID`,
+`ANTENNE_CONVEX_SITE`); the
 monorepo's own secrets; organization guards (2FA, a ruleset on `main`,
 read-only default workflow tokens); and a first supervised publish.
 `scripts/setup-antenne.sh N` starts at stage N and runs to the end, and

@@ -806,7 +806,7 @@ try:
            "the job is skipped for the App's own push to main")
         wanted = ["branches: [main]", "run_id:", "dry_run:", "group: antenne-publish", "cancel-in-progress: false", "contents: read", "pages: write",
                   "issues: write", "environment: antenne-publish", "timeout-minutes: 20", "persist-credentials: false", "fetch-depth: 0",
-                  "if: ${{ !inputs.dry_run }}", "app-id: ${{ vars.ANTENNE_APP_ID }}", "private-key: ${{ secrets.ANTENNE_APP_PRIVATE_KEY }}",
+                  "if: ${{ !inputs.dry_run }}", "client-id: ${{ vars.ANTENNE_APP_CLIENT_ID }}", "private-key: ${{ secrets.ANTENNE_APP_PRIVATE_KEY }}",
                   "repositories: antenne-site", "permission-contents: write", "ANTENNE_CONVEX_SITE: ${{ vars.ANTENNE_CONVEX_SITE }}",
                   "ANTENNE_KEY: ${{ secrets.ANTENNE_PUBLISH_KEY }}", "RUN_ID: ${{ inputs.run_id }}", "APP_TOKEN: ${{ steps.app-token.outputs.token }}",
                   "GITHUB_TOKEN: ${{ github.token }}", "run: python3 scripts/publish-approved.py run", "if: failure()", "if: success()"]
