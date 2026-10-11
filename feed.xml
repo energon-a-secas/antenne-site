@@ -6,7 +6,55 @@
     <atom:link href="https://antenne.neorgon.com/feed.xml" rel="self" type="application/rss+xml"/>
     <description>Launches, features, and fixes across the Neorgon fleet, approved at the desk before publishing</description>
     <language>en</language>
-    <lastBuildDate>Thu, 24 Sep 2026 15:01:24 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 11 Oct 2026 00:54:53 +0000</lastBuildDate>
+    <item>
+      <title>The hub's dock stays put when the news feed can't load</title>
+      <link>https://antenne.neorgon.com/#p=2026-09-26-the-hub-keeps-its-dock-when-the-feed-fails</link>
+      <guid isPermaLink="false">2026-09-26-the-hub-keeps-its-dock-when-the-feed-fails</guid>
+      <pubDate>Sat, 26 Sep 2026 12:00:00 +0000</pubDate>
+      <category>fix</category>
+      <description>If Antenne's feed fails to answer, the hub used to leave an empty gap where the news dock belongs. Now the dock stays in place instead of vanishing.</description>
+    </item>
+    <item>
+      <title>Meme Vault ranks search results and opens up categories</title>
+      <link>https://antenne.neorgon.com/#p=2026-09-26-meme-vault-ranks-search-and-opens-up-categories</link>
+      <guid isPermaLink="false">2026-09-26-meme-vault-ranks-search-and-opens-up-categories</guid>
+      <pubDate>Sat, 26 Sep 2026 12:00:00 +0000</pubDate>
+      <category>feature</category>
+      <description>Meme Vault's search now ranks results and forgives a typo, admins can rename, remove and create categories from the UI, and voting and uploads are back with clearer errors when a call fails.</description>
+    </item>
+    <item>
+      <title>Headroom is live</title>
+      <link>https://antenne.neorgon.com/#p=2026-09-26-headroom-is-live</link>
+      <guid isPermaLink="false">2026-09-26-headroom-is-live</guid>
+      <pubDate>Sat, 26 Sep 2026 12:00:00 +0000</pubDate>
+      <category>launch</category>
+      <description>Headroom simulates how a local AI box holds up under a crowd you define, so you can find the redline before buying hardware. It launched with a first-day update: new models, eight missions and four crowd presets, and a 3D device view.</description>
+    </item>
+    <item>
+      <title>Rewind backfills the whole fleet's git history</title>
+      <link>https://antenne.neorgon.com/#p=2026-09-23-rewind-backfills-the-whole-fleet</link>
+      <guid isPermaLink="false">2026-09-23-rewind-backfills-the-whole-fleet</guid>
+      <pubDate>Wed, 23 Sep 2026 12:00:00 +0000</pubDate>
+      <category>feature</category>
+      <description>Rewind rebuilds its replayable design history from git and screenshots. It now backfills that history across the whole fleet, prunes old snapshots monthly, and finishes its screenshot pipeline instead of stalling.</description>
+    </item>
+    <item>
+      <title>Mug, Portent and Chasqui open</title>
+      <link>https://antenne.neorgon.com/#p=2026-09-23-mug-portent-and-chasqui-open</link>
+      <guid isPermaLink="false">2026-09-23-mug-portent-and-chasqui-open</guid>
+      <pubDate>Wed, 23 Sep 2026 12:00:00 +0000</pubDate>
+      <category>launch</category>
+      <description>Three new tools joined the fleet the same day: a shelf for collectible mugs, a 3D magic 8 ball, and a WhatsApp relay that carries Neorgon's own notifications.</description>
+    </item>
+    <item>
+      <title>Badnik Lab is coming soon</title>
+      <link>https://antenne.neorgon.com/#p=2026-09-23-badnik-lab-is-coming-soon</link>
+      <guid isPermaLink="false">2026-09-23-badnik-lab-is-coming-soon</guid>
+      <pubDate>Wed, 23 Sep 2026 12:00:00 +0000</pubDate>
+      <category>note</category>
+      <description>A new project called Badnik Lab has entered the fleet's lineup, marked ready rather than live. No link yet, more to share once it opens.</description>
+    </item>
     <item>
       <title>Antenne has its own address</title>
       <link>https://antenne.neorgon.com/#p=2026-09-23-antenne-has-its-own-address</link>
@@ -118,54 +166,6 @@
       <pubDate>Tue, 01 Sep 2026 12:00:00 +0000</pubDate>
       <category>feature</category>
       <description>Press ? on any Neorgon site and the same help sheet appears, built from that site's own list of shortcuts. 53 sites now share it, and every single-key binding can be switched off or remapped.</description>
-    </item>
-    <item>
-      <title>Aficion learns your ties</title>
-      <link>https://antenne.neorgon.com/#p=2026-09-01-aficion-learns-your-ties</link>
-      <guid isPermaLink="false">2026-09-01-aficion-learns-your-ties</guid>
-      <pubDate>Tue, 01 Sep 2026 12:00:00 +0000</pubDate>
-      <category>feature</category>
-      <description>The atlas grows to 331 nodes and 22 clusters, levels become one Low-to-Hardcore dedication scale, and you can now tie your own links between nodes, note why, and link straight to any node.</description>
-    </item>
-    <item>
-      <title>Aficion opens the atlas</title>
-      <link>https://antenne.neorgon.com/#p=2026-08-31-aficion-opens-the-atlas</link>
-      <guid isPermaLink="false">2026-08-31-aficion-opens-the-atlas</guid>
-      <pubDate>Mon, 31 Aug 2026 12:00:00 +0000</pubDate>
-      <category>launch</category>
-      <description>One connected map of 269 hobbies and the crafts underneath, drawn like a skill tree: mark what you practise, watch the gold paths join, and compare maps by link.</description>
-    </item>
-    <item>
-      <title>Every site gets one way home</title>
-      <link>https://antenne.neorgon.com/#p=2026-08-29-one-way-home</link>
-      <guid isPermaLink="false">2026-08-29-one-way-home</guid>
-      <pubDate>Sat, 29 Aug 2026 12:00:00 +0000</pubDate>
-      <category>feature</category>
-      <description>The logo and the site title merged into a single link home, the favicon now takes its tint from whatever theme you picked, and the hub has its own planet icon in the header.</description>
-    </item>
-    <item>
-      <title>Echeance watches the clock</title>
-      <link>https://antenne.neorgon.com/#p=2026-08-29-echeance-watches-the-clock</link>
-      <guid isPermaLink="false">2026-08-29-echeance-watches-the-clock</guid>
-      <pubDate>Sat, 29 Aug 2026 12:00:00 +0000</pubDate>
-      <category>launch</category>
-      <description>Echeance tracks when tokens and credentials expire, and what the renewal actually takes for each one. The renewal steps live next to the date, because the date alone never helped anybody.</description>
-    </item>
-    <item>
-      <title>Balise collects the corrections</title>
-      <link>https://antenne.neorgon.com/#p=2026-08-29-balise-collects-the-corrections</link>
-      <guid isPermaLink="false">2026-08-29-balise-collects-the-corrections</guid>
-      <pubDate>Sat, 29 Aug 2026 12:00:00 +0000</pubDate>
-      <category>launch</category>
-      <description>Spotted something wrong on a Neorgon site? Balise takes the report. It collects corrections raised from anywhere in the fleet, triages them behind a private desk, and keeps a public record of what got fixed.</description>
-    </item>
-    <item>
-      <title>Four sites open in one day</title>
-      <link>https://antenne.neorgon.com/#p=2026-08-28-four-open-in-one-day</link>
-      <guid isPermaLink="false">2026-08-28-four-open-in-one-day</guid>
-      <pubDate>Fri, 28 Aug 2026 12:00:00 +0000</pubDate>
-      <category>launch</category>
-      <description>Releve, Scalpel, Enjeu and Cadrage all went live on the same day. A transcript pricer, a skill dissector, a print-and-play boss rush, and a camera settings trainer.</description>
     </item>
   </channel>
 </rss>

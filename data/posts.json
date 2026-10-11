@@ -1,8 +1,152 @@
 {
   "version": 1,
   "site": "dispatch",
-  "updated": "2026-09-24",
+  "updated": "2026-10-11",
   "posts": [
+    {
+      "id": "2026-09-26-the-hub-keeps-its-dock-when-the-feed-fails",
+      "date": "2026-09-26",
+      "kind": "fix",
+      "site": "neorgon-site",
+      "title": "The hub's dock stays put when the news feed can't load",
+      "summary": "If Antenne's feed fails to answer, the hub used to leave an empty gap where the news dock belongs. Now the dock stays in place instead of vanishing.",
+      "body": [
+        "A failed request to Antenne no longer takes the hub's dock down with it. Readers now see the dock where they expect it, even on a bad connection, instead of a blank space."
+      ],
+      "links": [
+        {
+          "label": "Open Neorgon",
+          "url": "https://neorgon.com/"
+        }
+      ],
+      "tags": [
+        "fix",
+        "neorgon-hub",
+        "antenne",
+        "reliability"
+      ]
+    },
+    {
+      "id": "2026-09-26-meme-vault-ranks-search-and-opens-up-categories",
+      "date": "2026-09-26",
+      "kind": "feature",
+      "site": "memes-site",
+      "title": "Meme Vault ranks search results and opens up categories",
+      "summary": "Meme Vault's search now ranks results and forgives a typo, admins can rename, remove and create categories from the UI, and voting and uploads are back with clearer errors when a call fails.",
+      "body": [
+        "Search in Meme Vault got smarter this week: results are ranked instead of listed in arrival order, and a small typo no longer means zero results.",
+        "Category management moved into the admin UI, so renaming, removing or creating a category no longer needs a database edit. Voting and uploads, which had broken, are fixed and now explain themselves when a call fails.",
+        "Browsing also picked up shareable filters and steadier loading for large collections."
+      ],
+      "links": [
+        {
+          "label": "Open Meme Vault",
+          "url": "https://memes.neorgon.com/"
+        }
+      ],
+      "tags": [
+        "feature",
+        "meme-vault",
+        "search"
+      ]
+    },
+    {
+      "id": "2026-09-26-headroom-is-live",
+      "date": "2026-09-26",
+      "kind": "launch",
+      "site": "headroom-site",
+      "title": "Headroom is live",
+      "summary": "Headroom simulates how a local AI box holds up under a crowd you define, so you can find the redline before buying hardware. It launched with a first-day update: new models, eight missions and four crowd presets, and a 3D device view.",
+      "body": [
+        "Headroom went live today. Pick your hardware, a model, and a mix of users, then watch where the setup breaks under sustained load instead of guessing from a spec sheet.",
+        "The launch build already carries a v1.1 pass: the September 2026 model list, use cases re-derived under a revised engine, eight missions with four crowd presets, and a 3D device workspace with local setup examples."
+      ],
+      "links": [
+        {
+          "label": "Open Headroom",
+          "url": "https://headroom.neorgon.com/"
+        }
+      ],
+      "tags": [
+        "launch",
+        "headroom",
+        "capacity-planning",
+        "local-ai"
+      ]
+    },
+    {
+      "id": "2026-09-23-rewind-backfills-the-whole-fleet",
+      "date": "2026-09-23",
+      "kind": "feature",
+      "site": "rewind-site",
+      "title": "Rewind backfills the whole fleet's git history",
+      "summary": "Rewind rebuilds its replayable design history from git and screenshots. It now backfills that history across the whole fleet, prunes old snapshots monthly, and finishes its screenshot pipeline instead of stalling.",
+      "body": [
+        "Rewind lets you browse any site's design history as replayable snapshots. Its capture pipeline now backfills git history across the whole fleet at once, rather than one site at a time, and prunes snapshots older than a month to keep things tidy.",
+        "A companion fix keeps live mirrors in place through a prune and compares snapshots against the right baseline, so the timeline doesn't drift."
+      ],
+      "links": [
+        {
+          "label": "Open Rewind",
+          "url": "https://rewind.neorgon.com/"
+        }
+      ],
+      "tags": [
+        "feature",
+        "rewind",
+        "fleet"
+      ]
+    },
+    {
+      "id": "2026-09-23-mug-portent-and-chasqui-open",
+      "date": "2026-09-23",
+      "kind": "launch",
+      "site": null,
+      "title": "Mug, Portent and Chasqui open",
+      "summary": "Three new tools joined the fleet the same day: a shelf for collectible mugs, a 3D magic 8 ball, and a WhatsApp relay that carries Neorgon's own notifications.",
+      "body": [
+        "Mug catalogs character and sculpted mugs from brand shops and gives collectors a shelf to track, share and compare.",
+        "Portent shakes a real 3D magic 8 ball for a verdict, with the classic twenty answers or a deck you import from your own lists.",
+        "Chasqui relays WhatsApp notifications for Neorgon through templates, and lets you watch the thread live."
+      ],
+      "links": [
+        {
+          "label": "Open Mug",
+          "url": "https://mug.neorgon.com/"
+        },
+        {
+          "label": "Open Portent",
+          "url": "https://portent.neorgon.com/"
+        },
+        {
+          "label": "Open Chasqui",
+          "url": "https://chasqui.neorgon.com/"
+        }
+      ],
+      "tags": [
+        "launch",
+        "mug",
+        "portent",
+        "chasqui"
+      ]
+    },
+    {
+      "id": "2026-09-23-badnik-lab-is-coming-soon",
+      "date": "2026-09-23",
+      "kind": "note",
+      "site": "badnik-lab-site",
+      "title": "Badnik Lab is coming soon",
+      "summary": "A new project called Badnik Lab has entered the fleet's lineup, marked ready rather than live. No link yet, more to share once it opens.",
+      "body": [
+        "Badnik Lab joined the roster as a coming-soon project this week. It isn't live yet, so there's nothing to click through to, but it's on the list for a future launch story."
+      ],
+      "links": [],
+      "tags": [
+        "note",
+        "coming-soon",
+        "badnik-lab"
+      ]
+    },
     {
       "id": "2026-09-23-antenne-has-its-own-address",
       "date": "2026-09-23",
