@@ -6,7 +6,15 @@
     <atom:link href="https://antenne.neorgon.com/feed.xml" rel="self" type="application/rss+xml"/>
     <description>Launches, features, and fixes across the Neorgon fleet, approved at the desk before publishing</description>
     <language>en</language>
-    <lastBuildDate>Sun, 11 Oct 2026 00:54:53 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 13 Oct 2026 23:41:22 +0000</lastBuildDate>
+    <item>
+      <title>Yomu reads Japanese with you, and now looks words up and draws every kanji</title>
+      <link>https://antenne.neorgon.com/#p=2026-10-13-yomu-reads-looks-up-and-draws</link>
+      <guid isPermaLink="false">2026-10-13-yomu-reads-looks-up-and-draws</guid>
+      <pubDate>Tue, 13 Oct 2026 12:00:00 +0000</pubDate>
+      <category>launch</category>
+      <description>Paste a line of Japanese and Yomu splits it into words with furigana and romaji. This week it learned to search by Japanese, romaji or English, to show every form of a verb, and to draw each kanji stroke by stroke.</description>
+    </item>
     <item>
       <title>The hub's dock stays put when the news feed can't load</title>
       <link>https://antenne.neorgon.com/#p=2026-09-26-the-hub-keeps-its-dock-when-the-feed-fails</link>
@@ -158,14 +166,6 @@
       <pubDate>Tue, 01 Sep 2026 12:00:00 +0000</pubDate>
       <category>fix</category>
       <description>The tool that keeps a certain punctuation mark out of the fleet's writing now understands JavaScript well enough to tell a comment from a string, including inside nested template literals.</description>
-    </item>
-    <item>
-      <title>One set of keyboard shortcuts, everywhere</title>
-      <link>https://antenne.neorgon.com/#p=2026-09-01-one-set-of-keys</link>
-      <guid isPermaLink="false">2026-09-01-one-set-of-keys</guid>
-      <pubDate>Tue, 01 Sep 2026 12:00:00 +0000</pubDate>
-      <category>feature</category>
-      <description>Press ? on any Neorgon site and the same help sheet appears, built from that site's own list of shortcuts. 53 sites now share it, and every single-key binding can be switched off or remapped.</description>
     </item>
   </channel>
 </rss>

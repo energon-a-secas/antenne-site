@@ -1,8 +1,38 @@
 {
   "version": 1,
   "site": "dispatch",
-  "updated": "2026-10-11",
+  "updated": "2026-10-13",
   "posts": [
+    {
+      "id": "2026-10-13-yomu-reads-looks-up-and-draws",
+      "date": "2026-10-13",
+      "kind": "launch",
+      "site": "yomu-site",
+      "title": "Yomu reads Japanese with you, and now looks words up and draws every kanji",
+      "summary": "Paste a line of Japanese and Yomu splits it into words with furigana and romaji. This week it learned to search by Japanese, romaji or English, to show every form of a verb, and to draw each kanji stroke by stroke.",
+      "body": [
+        "Yomu is a reader for the Japanese you meet in the wild. Paste a sign, a lyric or a message and it splits the line into words, puts furigana over the kanji, writes how each word is said and spelled, and explains the grammar it finds. Everything runs in your browser.",
+        "New this week: Search finds a word from 食べた, taberu or plain English, and says how it matched. Each verb and adjective lists all its forms, plain and polite. Every kanji has its own page with animated stroke order, the parts it is built from, the kanji that share them, and common words that use it.",
+        "It also shows the less common ways to write things: 鮨 and 寿司 beside すし, the old 國 beside 国, each labelled rare, old or seldom seen. There is a kana chart, a counters table that marks where いっぽん and さんぼん change their sound, and a kanji of the day."
+      ],
+      "links": [
+        {
+          "label": "Open Yomu",
+          "url": "https://yomu.neorgon.com/"
+        },
+        {
+          "label": "Source",
+          "url": "https://github.com/energon-a-secas/yomu-site"
+        }
+      ],
+      "tags": [
+        "japanese",
+        "reader",
+        "kanji",
+        "search",
+        "language-learning"
+      ]
+    },
     {
       "id": "2026-09-26-the-hub-keeps-its-dock-when-the-feed-fails",
       "date": "2026-09-26",
