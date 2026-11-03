@@ -78,6 +78,10 @@ jobs:
       # the step that failed and a count. Never a story id or story text. Both
       # lookups take only an issue this workflow opened (--app github-actions):
       # the repo is public, and anyone can open an issue with the same title.
+      # The count takes only this workflow's own "Failure N" comments, so a
+      # stranger's comment on that public issue cannot move it. It reads them
+      # through REST, where the author is github-actions[bot]; GraphQL (gh issue
+      # view --json comments) names the same bot github-actions, without [bot].
       - name: Report the failure
         if: failure()
         env:
@@ -91,7 +95,7 @@ jobs:
           if [ -z "$number" ]; then
             gh issue create --title "$title" --body "$(printf 'Failure 1 since this issue opened.\n\nRun: %s\nFailed step: %s\n' "$RUN_URL" "$FAILED_STEP")"
           else
-            count=$(gh issue view "$number" --json comments --jq '.comments | length')
+            count=$(gh api "repos/$GH_REPO/issues/$number/comments" --paginate --jq '.[] | select(.user.login == "github-actions[bot]" and (.body | startswith("Failure "))) | .id' | wc -l | tr -d ' ')
             gh issue comment "$number" --body "$(printf 'Failure %s since this issue opened.\n\nRun: %s\nFailed step: %s\n' "$((count + 2))" "$RUN_URL" "$FAILED_STEP")"
           fi
 

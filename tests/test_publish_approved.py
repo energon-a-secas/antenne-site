@@ -833,6 +833,37 @@ try:
         eq([len(lookups), [line for line in lookups if "--app github-actions" not in line]], [2, []],
            "both issue lookups take only an issue the workflow opened, never one a stranger titled the same")
 
+    with section("the failure count takes only the workflow's own Failure comments, so a stranger's comment cannot move it"):
+        counts = [line for line in lines if line.startswith("count=")]
+        code = "\n".join(line for line in lines if not line.startswith("#"))
+        eq([len(counts), "--json comments" in code, "comments | length" in code, code.count('"$((count + 2))"')], [1, False, False, 1],
+           "one count line, no count of every comment, and the next number is still the count plus 2")
+        count = counts[0] if counts else ""
+        eq(['gh api "repos/$GH_REPO/issues/$number/comments" --paginate --jq ' in count, count.endswith("| wc -l | tr -d ' ')")], [True, True],
+           "it reads the comments through REST, every page, and counts one line per comment it keeps")
+        found = re.search(r"--jq '([^']*)'", count)
+        jq_filter = found.group(1) if found else ""
+        eq(['select(.user.login == "github-actions[bot]"' in jq_filter, '(.body | startswith("Failure "))' in jq_filter], [True, True],
+           "it keeps a comment only when the workflow's bot wrote it (the REST login, with [bot]) and it is a Failure comment")
+        jq = shutil.which("jq")
+        if jq and jq_filter:
+            def comment(n, login, kind, body):
+                return {"id": n, "user": {"login": login, "type": kind}, "body": body}
+            # Two pages, as --paginate hands them to the filter one at a time.
+            pages = [[comment(1, "github-actions[bot]", "Bot", "Failure 2 since this issue opened.\n\nRun: x\nFailed step: y\n"),
+                      comment(2, "stranger", "User", "Failure 99 since this issue opened."),
+                      comment(3, "github-actions", "User", "Failure 98 since this issue opened."),
+                      comment(4, "github-actions[bot]", "Bot", "Resolved by https://github.com/energon-a-secas/antenne-site/actions/runs/1")],
+                     [comment(5, "stranger", "User", "+1"),
+                      comment(6, "github-actions[bot]", "Bot", "Failure 3 since this issue opened.\n\nRun: x\nFailed step: y\n")]]
+            kept = []
+            for page in pages:
+                done = subprocess.run([jq, "-r", jq_filter], input=json.dumps(page), capture_output=True, text=True)
+                kept += done.stdout.split() if done.returncode == 0 else ["jq exit %d" % done.returncode]
+            eq(kept, ["1", "6"], "across two pages it keeps the bot's two Failure comments: no stranger's, no look-alike login, no Resolved by")
+        else:
+            print("     (jq is not on PATH: the count filter is checked as text only)")
+
     with section("no story text reached stdout or stderr on any run, and this tree was never written"):
         eq([len(outputs) >= 20, [i for i, text in enumerate(outputs) if MARK in text]], [True, []], "%d runs, no marker" % len(outputs))
         for rel, content in REAL.items():
