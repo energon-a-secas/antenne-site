@@ -74,9 +74,9 @@ await section('the numbers of section 4.4, and of 4.3 and 6.1, as the contract w
   const MORE = {
     QUEUE_PER_STATUS_MAX: 200, LIVE_SHOWN_MS: 7 * DAY, SPIKED_SHOWN_MS: 30 * DAY, REVOKE_MOVE_MAX: 100, NOTE_MAX: 200,
     TOKEN_WARNING_MS: 30 * DAY, LABEL_MAX: 80, EMAIL_MAX: 254, RATE_PRUNE_MAX: 100, RATE_SWEEP_AGE_MS: 31 * DAY,
-    REQUEST_SWEEP_AGE_MS: 30 * DAY, SPIKED_SWEEP_AGE_MS: 90 * DAY, RUN_SWEEP_AGE_MS: 30 * DAY,
+    REQUEST_SWEEP_AGE_MS: 30 * DAY, SPIKED_SWEEP_AGE_MS: 90 * DAY, RUN_SWEEP_AGE_MS: 30 * DAY, REPLAY_KEEP_MS: 11 * MINUTE, REPLAY_PRUNE_MAX: 100,
   };
-  eq(Object.fromEntries(Object.keys(MORE).map((k) => [k, limits[k]])), MORE, 'sections 4.3 and 6.1: 200 per status, live 7 and spiked 30 days, 100 moved per revoke, notes of 200, a 30-day token warning, sweeps at 31, 30, 90 and 30 days');
+  eq(Object.fromEntries(Object.keys(MORE).map((k) => [k, limits[k]])), MORE, 'sections 4.3 and 6.1: 200 per status, live 7 and spiked 30 days, 100 moved per revoke, notes of 200, a 30-day token warning, sweeps at 31, 30, 90 and 30 days, a request remembered 11 minutes (F17)');
   eq(Object.keys(limits).sort(), [...Object.keys(CAPS), ...Object.keys(MORE), 'LIMITS', 'LIMIT_NAMES'].sort(), 'limits.ts exports no number this test does not state');
   eq(Object.isFrozen(limits.LIMITS) && Object.values(limits.LIMITS).every(Object.isFrozen), true, 'LIMITS cannot change at run time');
   eq(Object.entries(limits.LIMITS).filter(([, l]) => limits.RATE_SWEEP_AGE_MS <= l.windowMs).map(([n]) => n), [], 'the daily sweep never deletes a rate row a window still counts');

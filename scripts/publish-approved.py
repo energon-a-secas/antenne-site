@@ -40,6 +40,11 @@ this machine. Config removes ANTENNE_KEY, APP_TOKEN and GITHUB_TOKEN from the
 environment once it has read them, so git and build-feed.py inherit none of
 them; push() hands APP_TOKEN to the one git push that needs it.
 
+Every call after the claim carries the claim's ghRunId (GH_RUN_ID, null on a
+local run), and Convex refuses one whose ghRunId is not the one the claim
+recorded (review F17), so a run that lost its claim cannot report for the run
+that took it over.
+
 Output is ids and counts only: never a title, a summary, a body or a link, and
 never what git or build-feed.py printed. A failure also appends stage=<word> to
 $GITHUB_OUTPUT for the workflow's issue step.
@@ -203,6 +208,10 @@ class Publisher:
 
     # ── the desk backend and the GitHub API ─────────────────────────────────
 
+    def body(self, **fields) -> dict:
+        """The body of a call after the claim: the run, the workflow run that claimed it, then fields."""
+        return {"runId": self.run_id, "ghRunId": self.cfg.gh_run_id, **fields}
+
     def convex(self, path: str, payload: dict, stage: str) -> dict:
         try:
             status, body = antenne.post(self.cfg.site, path, payload, self.cfg.key)
@@ -348,7 +357,7 @@ class Publisher:
 
     def release(self, reason: str) -> None:
         try:
-            status, body = antenne.post(self.cfg.site, "/publish/release", {"runId": self.run_id, "reason": reason}, self.cfg.key)
+            status, body = antenne.post(self.cfg.site, "/publish/release", self.body(reason=reason), self.cfg.key)
         except antenne.AntenneError:
             status, body = None, None
         released = body.get("released") if isinstance(body, dict) and body.get("ok") is True else None
@@ -377,7 +386,7 @@ class Publisher:
             self.summary.update(added=merged["added"], identical=merged["identical"])
             conflicts = [i for i in mismatched + merged["conflict"] + merged["invalid"] if isinstance(i, str) and i not in reported]
             if conflicts:
-                self.convex("/publish/conflict", {"runId": self.run_id, "storyIds": conflicts}, "conflict")
+                self.convex("/publish/conflict", self.body(storyIds=conflicts), "conflict")
                 reported.update(conflicts)
                 self.summary["conflict"] = sorted(reported)
                 say(f"sent back as conflicts: {', '.join(conflicts)}")
@@ -385,7 +394,7 @@ class Publisher:
                 if self.cfg.dry_run:
                     return self.dry([])
                 sha = head()
-                self.convex("/publish/pushed", {"runId": self.run_id, "sha": sha, "noChange": True}, "pushed")
+                self.convex("/publish/pushed", self.body(sha=sha, noChange=True), "pushed")
                 self.pushed = True
                 self.summary.update(noChange=True, sha=sha)
                 break
@@ -399,14 +408,14 @@ class Publisher:
                 sha = head()
                 self.summary["sha"] = sha
                 say(f"pushed {len(merged['added'])} stories as {sha}")
-                self.convex("/publish/pushed", {"runId": self.run_id, "sha": sha, "noChange": False}, "pushed")
+                self.convex("/publish/pushed", self.body(sha=sha, noChange=False), "pushed")
                 break
             if attempt == PUSH_RETRIES:
                 raise Failure("push", f"the push was rejected {PUSH_RETRIES + 1} times")
             say("the push was rejected; fetching main and merging again")
             self.reset()
         self.pages(sha)
-        self.convex("/publish/built", {"runId": self.run_id, "sha": sha, "pagesStatus": "built"}, "built")
+        self.convex("/publish/built", self.body(sha=sha, pagesStatus="built"), "built")
         print(json.dumps(self.summary))
         return 0
 

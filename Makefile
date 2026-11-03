@@ -61,6 +61,7 @@ validate:
 	@node tests/convex-submit.test.mjs
 	@node tests/convex-publish.test.mjs
 	@node tests/convex-publish-wired.test.mjs
+	@node tests/convex-replay.test.mjs
 	@python3 tests/test_build_feed.py
 	@python3 tests/test_sign.py
 	@python3 tests/test_submit_drafts.py

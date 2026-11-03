@@ -282,6 +282,7 @@ no install, all run by `make validate`:
 | `convex-access`, `convex-drafts`, `convex-members`, `convex-contract` | Roles, the draft cores, people and settings, and the contract rules no behaviour test can see (limits stated literally, every public function resolving its caller, `desk.html`'s CSP pinned to the contract) |
 | `convex-submit`, `test_sign.py`, `test_submit_drafts.py` | The signed routes, `tests/sign-vectors.json` shared by the TypeScript verifier and the Python signer, and the submit client |
 | `convex-publish`, `convex-publish-wired`, `test_publish_approved.py` | The publish run state machine and routes, the wrappers end to end, and `publish-approved.py` against a fake Convex and a fake GitHub in a throwaway git repo (plus the owner-step make targets and `desk_smoke.py --dry-run`) |
+| `convex-replay` | Review F17: the digest of a signed request (the same for a signature respelled in base64), the store that answers each signed write request once, and the workflow run every `/publish/*` call after the claim must come from |
 | `desk-api`, `desk-publish`, `desk-flow`, `desk-flow-more`, `desk-escape` | The desk: its Convex surface, the status bar, the whole page end to end, and story text staying text (breakouts in a draft's title, summary, body and links through the card, the editor and New story) |
 
 The backend tests run the real cores over `tests/support/fakedb.mjs`, an
@@ -321,10 +322,10 @@ dispatch-site/
 ├── data/
 │   └── posts.json      # Published stories, the single source the feed renders
 ├── convex/             # Convex backend (project antenne); convex/_generated is never committed
-│   ├── schema.ts       # members, accessRequests, drafts, draftEvents, publishRuns, publishedIds, settings, rateEvents
+│   ├── schema.ts       # members, accessRequests, drafts, draftEvents, publishRuns, publishedIds, settings, rateEvents, seenRequests
 │   ├── desk.ts, drafts.ts, members.ts, settings.ts, publish.ts   # public functions, thin wrappers
 │   ├── http.ts, submit.ts, links.ts, crons.ts                    # signed routes, link checks, schedules
-│   └── lib/            # the rules: access, post, canonical, *Core, routes, signature, limits, rate
+│   └── lib/            # the rules: access, post, canonical, *Core, routes, signature, replay, limits, rate
 ├── scripts/
 │   ├── build-feed.py   # post rules, --merge, --validate-story, feed.xml and the index.html stamp
 │   ├── submit-drafts.py  # submit stories, or --status

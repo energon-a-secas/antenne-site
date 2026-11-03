@@ -47,7 +47,7 @@ Vendored from `packages/neorgon-ui/`, never edit in place; run the sync script i
 - `localStorage['dispatch-state']`
 - `localStorage['neo-auth:dev-key']`
 - `localStorage['neokeys-prefs']`
-- Convex tables: `accessRequests`, `draftEvents`, `drafts`, `members`, `publishRuns`, `publishedIds`, `rateEvents`, `settings` (see `convex/schema.ts`)
+- Convex tables: `accessRequests`, `draftEvents`, `drafts`, `members`, `publishRuns`, `publishedIds`, `rateEvents`, `seenRequests`, `settings` (see `convex/schema.ts`)
 - `data/`: 1 file(s)
 
 ## Conventions

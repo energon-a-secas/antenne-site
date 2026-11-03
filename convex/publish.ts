@@ -4,6 +4,7 @@ import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { machineCaller, resolveCaller } from "./lib/access.ts";
 import type { Caller } from "./lib/access.ts";
+import { once } from "./lib/replay.ts";
 import { fail } from "./lib/result.ts";
 import type { Result } from "./lib/result.ts";
 import { parseJsonObject } from "./lib/routes.ts";
@@ -85,17 +86,19 @@ export const retry = mutation({
 
 // ── The /publish/* routes (convex/http.ts, after routes.ts verified the key) ──
 
-/** convex/lib/routes.ts MachineArgs: the verified key, the route's path, and the body text as signed. */
-const machineArgs = { keyId: v.string(), scopes: v.array(v.string()), path: v.string(), body: v.string() };
+/** convex/lib/routes.ts MachineArgs: the verified key, the route's path, the body text as signed, and the request's digest. */
+const machineArgs = { keyId: v.string(), scopes: v.array(v.string()), path: v.string(), body: v.string(), digest: v.string() };
 type MachineCore = (db: MutationCtx["db"], caller: Caller, args: Record<string, unknown>, now: number, env: MachineEnv) => Promise<WithPublishIntents>;
 
+/** Each route answers a signed request once (convex/lib/replay.ts): the same request again is refused replayed and writes nothing. */
 function route(core: MachineCore) {
   return internalMutation({
     args: machineArgs,
     handler: async (ctx, args): Promise<Result> => {
       const body = parseJsonObject(args.body);
       if (body === null) return fail("malformed", "The body is not the JSON object this route takes.");
-      const { result, intents } = await core(ctx.db, machineCaller(args.keyId, args.scopes), body, Date.now(), deskEnv());
+      const [caller, now] = [machineCaller(args.keyId, args.scopes), Date.now()];
+      const { result, intents } = await once(ctx.db, args.digest, now, () => core(ctx.db, caller, body, now, deskEnv()));
       await follow(ctx, intents);
       return result;
     },

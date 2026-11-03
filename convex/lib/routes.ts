@@ -2,7 +2,7 @@ import { isFrozen } from "./access.ts";
 import type { DeskEnv, Scope } from "./access.ts";
 import { BODY_MAX_BYTES, SUBMIT_BATCH_MAX } from "./limits.ts";
 import type { Result } from "./result.ts";
-import { parseMachineKeys, scopeForPath, verifyRequest } from "./signature.ts";
+import { parseMachineKeys, requestDigest, scopeForPath, verifyRequest } from "./signature.ts";
 import type { HeaderSource } from "./signature.ts";
 
 // The machine routes of docs/plans/2026-09-15-antenne-desk.md section 5, minus
@@ -16,11 +16,13 @@ import type { HeaderSource } from "./signature.ts";
 // signature, key and timestamp (401 unauthorized, one answer for every way it
 // fails); the key's scope (403 scope); DESK_FROZEN on a write route (503
 // frozen); the JSON and its shape (400); the rate meter when the row asks for
-// it; the internal function. A refusal from the function comes back as a
-// status by its code: rate-limited 429, frozen 503, forbidden 403 scope, and
-// 400 for the rest. Every body is { ok, ... }. convex/http.ts registers POST
-// only, so on a deployment Convex's own router answers another method or an
-// unknown path; the 404 and 405 here answer a direct caller of machineRequest.
+// it; the internal function, handed the request's digest. A refusal from the
+// function comes back as a status by its code: rate-limited 429, frozen 503,
+// forbidden 403 scope, replayed 409 (a write request answered before:
+// convex/lib/replay.ts), and 400 for the rest. Every body is { ok, ... }.
+// convex/http.ts registers POST only, so on a deployment Convex's own router
+// answers another method or an unknown path; the 404 and 405 here answer a
+// direct caller of machineRequest.
 //
 // Routes never read Authorization and never call getUserIdentity (section 5):
 // the caller is the verified key, handed on as keyId and scopes.
@@ -30,8 +32,13 @@ export type RouteFn =
   | "submit:ingest" | "submit:status" | "submit:meter"
   | "publish:claim" | "publish:conflict" | "publish:pushed" | "publish:built" | "publish:release";
 
-/** What every machine internal function takes: the verified key, the route's path, and the body text as signed. */
-export type MachineArgs = { keyId: string; scopes: string[]; path: string; body: string };
+/**
+ * What every machine internal function takes: the verified key, the route's
+ * path, the body text as signed, and the request's digest
+ * (convex/lib/signature.ts requestDigest), which a write route's wrapper
+ * refuses to answer twice (convex/lib/replay.ts).
+ */
+export type MachineArgs = { keyId: string; scopes: string[]; path: string; body: string; digest: string };
 
 export type RouteEnv = Pick<DeskEnv, "DESK_FROZEN"> & { MACHINE_KEYS?: string | null };
 
@@ -125,7 +132,7 @@ const MESSAGES: Record<string, string> = {
 
 const STATUS_BY_CODE: Record<string, number> = {
   "not-found": 404, method: 405, "not-configured": 503, frozen: 503, "too-large": 413, unauthorized: 401,
-  scope: 403, forbidden: 403, "rate-limited": 429, internal: 500,
+  scope: 403, forbidden: 403, replayed: 409, "rate-limited": 429, internal: 500,
 };
 
 function refusal(code: string): Answer {
@@ -204,7 +211,8 @@ export async function machineRequest(
   if (utf8Length(text) > BODY_MAX_BYTES) return refusal("too-large");
 
   const key = await verifyRequest(headers, path, text, keys, now);
-  if (key === null) return refusal("unauthorized");
+  const digest = key === null ? null : await requestDigest(headers);
+  if (key === null || digest === null) return refusal("unauthorized");
   if (!key.scopes.includes(route.scope)) return refusal("scope");
   if (route.write && isFrozen(env)) return refusal("frozen");
 
@@ -213,7 +221,7 @@ export async function machineRequest(
   const shapeCode = route.shape(body);
   if (shapeCode !== null) return refusal(shapeCode);
 
-  const args: MachineArgs = { keyId: key.keyId, scopes: [...key.scopes], path, body: text };
+  const args: MachineArgs = { keyId: key.keyId, scopes: [...key.scopes], path, body: text, digest };
   if (route.meter) {
     const metered = await invoke(run, METER_FN, args);
     if (metered === null) return refusal("internal");

@@ -54,6 +54,15 @@ export const CLAIM_MAX = 25;
 export const BODY_MAX_BYTES = 64000;
 /** How far a signed timestamp may sit from the server's clock, either way. */
 export const SIGNATURE_WINDOW_MS = 5 * MINUTE;
+/**
+ * How long a write route remembers a request it answered, so the same signed
+ * request is refused as replayed (review F17, convex/lib/replay.ts). A
+ * timestamp verifies for SIGNATURE_WINDOW_MS either side of the clock, so a
+ * request first answered at the start of that span can still verify two
+ * windows later; the minute covers the gap between the route's clock and the
+ * mutation's.
+ */
+export const REPLAY_KEEP_MS = 2 * SIGNATURE_WINDOW_MS + MINUTE;
 /** publishAfter = approval time + settings.publishDelayMs, this when no settings row exists. */
 export const PUBLISH_DELAY_DEFAULT_MS = 5 * MINUTE;
 /** settings:update refuses a publishDelayMs above this (and below 0). */
@@ -90,6 +99,8 @@ export const EMAIL_MAX = 254;
 
 /** Aged-out rate rows one recordRate deletes, so a long idle bucket cannot make one call expensive. */
 export const RATE_PRUNE_MAX = 100;
+/** Aged-out seenRequests rows one answered write request deletes, for the same reason. */
+export const REPLAY_PRUNE_MAX = 100;
 /** publish:sweep deletes rateEvents older than this: one day past the longest window. */
 export const RATE_SWEEP_AGE_MS = 31 * DAY;
 /** publish:sweep deletes access requests older than this. */

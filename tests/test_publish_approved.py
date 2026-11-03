@@ -356,7 +356,7 @@ try:
         eq([code, cx.paths, all(c["verified"] for c in cx.calls)], [0, ["/publish/claim", "/publish/pushed", "/publish/built"], True],
            "claim, pushed and built, each signed")
         eq([cx.body("/publish/claim")[0]["runId"], cx.body("/publish/pushed"), cx.body("/publish/built")],
-           ["run1", [{"runId": "run1", "sha": sha, "noChange": False}], [{"runId": "run1", "sha": sha, "pagesStatus": "built"}]],
+           ["run1", [{"runId": "run1", "ghRunId": "77", "sha": sha, "noChange": False}], [{"runId": "run1", "ghRunId": "77", "sha": sha, "pagesStatus": "built"}]],
            "the run id Convex dispatched, then the pushed sha twice")
         who = repo.git("--git-dir", repo.origin, "log", "-1", "--format=%an|%ae|%cn|%ce", "main").strip().split("|")
         email = "%d+%s@users.noreply.github.com" % (BOT_ID, BOT)
@@ -379,9 +379,25 @@ try:
         code, summary, _, _ = run(repo, cx, gh)
         ids = [p["id"] for p in json.loads(origin_file(repo, "data/posts.json"))["posts"]]
         eq([code, cx.paths, cx.body("/publish/conflict")], [0, ["/publish/claim", "/publish/conflict", "/publish/pushed", "/publish/built"],
-                                                            [{"runId": "run1", "storyIds": [bad["id"]]}]], "the mismatch is reported as a conflict")
+                                                            [{"runId": "run1", "ghRunId": "77", "storyIds": [bad["id"]]}]], "the mismatch is reported as a conflict")
         eq([good["id"] in ids, bad["id"] in ids, summary["conflict"]], [True, False, [bad["id"]]], "and never merged")
         close(cx, gh)
+
+    with section("every call after the claim carries the claim's ghRunId (review F17): GH_RUN_ID, or null on a local run"):
+        for what, env, want in (("a workflow run", {}, "77"), ("a local run with no GH_RUN_ID", {"GH_RUN_ID": "", "GH_RUN_URL": ""}, None)):
+            repo, cx, gh = world([claimed(story("bound-bad"), "0" * 64), claimed(story("bound-good"))])
+            code, _, _, _ = run(repo, cx, gh, env=env)
+            eq([code, cx.paths, [c["body"].get("ghRunId", "absent") for c in cx.calls]],
+               [0, ["/publish/claim", "/publish/conflict", "/publish/pushed", "/publish/built"], [want] * 4],
+               "%s: the claim, conflict, pushed and built all carry %s" % (what, want))
+            close(cx, gh)
+            repo, cx, gh = world([claimed(story("bound-release"))])
+            with open(os.path.join(repo.site, "stray.txt"), "w") as fh:
+                fh.write("x\n")
+            code, _, _, _ = run(repo, cx, gh, env=env)
+            eq([code, cx.paths, [c["body"].get("ghRunId", "absent") for c in cx.calls]], [1, ["/publish/claim", "/publish/release"], [want, want]],
+               "%s: and so does the release after a failure" % what)
+            close(cx, gh)
 
     with section("merge conflict and invalid are reported; nothing added is noChange with HEAD, then built"):
         existing = FEED.validate_post(ARCHIVE[0], "archive")["post"]
@@ -390,10 +406,10 @@ try:
         repo, cx, gh = world([claimed(existing), claimed(changed_post), claimed(invalid)])
         code, summary, _, _ = run(repo, cx, gh)
         eq([code, cx.paths], [0, ["/publish/claim", "/publish/conflict", "/publish/pushed", "/publish/built"]], "conflict, pushed, built")
-        eq(cx.body("/publish/conflict"), [{"runId": "run1", "storyIds": [existing["id"], invalid["id"]]}],
+        eq(cx.body("/publish/conflict"), [{"runId": "run1", "ghRunId": "77", "storyIds": [existing["id"], invalid["id"]]}],
            "the id holding different content and the invalid story are conflicts; the identical one is not")
         eq([cx.body("/publish/pushed"), repo.origin_main(), repo.attempts(), summary["identical"], summary["noChange"]],
-           [[{"runId": "run1", "sha": repo.initial, "noChange": True}], repo.initial, 0, [existing["id"]], True],
+           [[{"runId": "run1", "ghRunId": "77", "sha": repo.initial, "noChange": True}], repo.initial, 0, [existing["id"]], True],
            "nothing added: HEAD with noChange, and nothing pushed")
         close(cx, gh)
 
@@ -404,7 +420,7 @@ try:
                 fh.write("\nx\n")
             code, summary, _, err = run(repo, cx, gh)
             eq([code, cx.paths, cx.body("/publish/release"), repo.attempts(), repo.origin_main() == repo.initial, repo.stage()],
-               [1, ["/publish/claim", "/publish/release"], [{"runId": "run1", "reason": "diff-guard"}], 0, True, "stage=diff-guard\n"],
+               [1, ["/publish/claim", "/publish/release"], [{"runId": "run1", "ghRunId": "77", "reason": "diff-guard"}], 0, True, "stage=diff-guard\n"],
                "%s: exit 1, released with reason diff-guard, nothing pushed" % what)
             eq(["failed at diff-guard" in err, touch in err], [True, False], "stderr names the stage and counts paths, never a path")
             close(cx, gh)
@@ -414,7 +430,7 @@ try:
         repo, cx, gh = world([claimed(post)])
         code, summary, _, _ = run(repo, cx, gh, dry=True, env={"APP_TOKEN": "", "GITHUB_TOKEN": ""})
         eq([code, cx.paths, cx.body("/publish/release"), gh.calls, repo.origin_main() == repo.initial, repo.attempts()],
-           [0, ["/publish/claim", "/publish/release"], [{"runId": "run1", "reason": "dry-run"}], [], True, 0], "released as dry-run, no push, no API")
+           [0, ["/publish/claim", "/publish/release"], [{"runId": "run1", "ghRunId": "77", "reason": "dry-run"}], [], True, 0], "released as dry-run, no push, no API")
         eq([summary["dryRun"], summary["added"], any("data/posts.json" in line for line in summary["diffStat"]),
             all(any(g in line for g in GUARDED) or "changed" in line for line in summary["diffStat"])],
            [True, [post["id"]], True, True], "the summary: the ids it would add and the diff stat of the three files")
@@ -426,7 +442,7 @@ try:
         repo, cx, gh = world([claimed(story("rejected"))], reject=99)
         code, summary, _, _ = run(repo, cx, gh)
         eq([code, repo.attempts(), cx.paths, cx.body("/publish/release"), repo.origin_main() == repo.initial, summary["pushAttempts"]],
-           [1, 4, ["/publish/claim", "/publish/release"], [{"runId": "run1", "reason": "push"}], True, 4],
+           [1, 4, ["/publish/claim", "/publish/release"], [{"runId": "run1", "ghRunId": "77", "reason": "push"}], True, 4],
            "4 pushes (one and 3 retries), then released with reason push and exit 1")
         close(cx, gh)
         repo, cx, gh = world([claimed(story("second-try"))], reject=2)
@@ -458,7 +474,7 @@ try:
         with open(os.path.join(repo.site, "data", "posts.json"), "w") as fh:
             fh.write("{not json")
         code, _, _, _ = run(repo, cx, gh)
-        eq([code, cx.body("/publish/release"), repo.stage()], [1, [{"runId": "run1", "reason": "merge"}], "stage=merge\n"],
+        eq([code, cx.body("/publish/release"), repo.stage()], [1, [{"runId": "run1", "ghRunId": "77", "reason": "merge"}], "stage=merge\n"],
            "an archive build-feed.py cannot read: released with reason merge, exit 1")
         close(cx, gh)
         repo, cx, gh = world([claimed(story("wrong-key"))])
@@ -483,7 +499,7 @@ try:
         code, summary, _, _ = run(repo, cx, gh)
         ids = [p["id"] for p in json.loads(origin_file(repo, "data/posts.json"))["posts"]]
         eq([code, cx.body("/publish/conflict"), post["id"] in ids, summary["noChange"]],
-           [0, [{"runId": "run1", "storyIds": ["2026-09-15-renamed"]}], False, True], "the hash matches, the id does not: a conflict")
+           [0, [{"runId": "run1", "ghRunId": "77", "storyIds": ["2026-09-15-renamed"]}], False, True], "the hash matches, the id does not: a conflict")
         close(cx, gh)
 
     with section("a claim answer of the wrong shape fails at claim; only a claim that named a run is released"):
@@ -491,9 +507,9 @@ try:
         for what, doc, released in (("stories without a run id", {"ok": True, "runId": "Bad Id!", "stories": [claimed(post)]}, []),
                                     ("stories that are not a list", {"ok": True, "runId": "run1", "stories": "none"}, []),
                                     ("a story with no approvedHash", {"ok": True, "runId": "run1", "stories": [{"storyId": post["id"], "post": post}]},
-                                     [{"runId": "run1", "reason": "claim"}]),
+                                     [{"runId": "run1", "ghRunId": "77", "reason": "claim"}]),
                                     ("a story id that is not an id", {"ok": True, "runId": "run1", "stories": [dict(claimed(post), storyId="Not An Id")]},
-                                     [{"runId": "run1", "reason": "claim"}])):
+                                     [{"runId": "run1", "ghRunId": "77", "reason": "claim"}])):
             repo, cx, gh = world([], claim_doc=doc)
             code, _, _, _ = run(repo, cx, gh)
             eq([code, cx.body("/publish/release"), repo.stage(), repo.attempts(), gh.calls], [1, released, "stage=claim\n", 0, []],
@@ -505,7 +521,7 @@ try:
                            ("an id of 0", {"login": BOT, "id": 0})):
             repo, cx, gh = world([claimed(story("bot"))], user=user)
             code, _, _, _ = run(repo, cx, gh)
-            eq([code, cx.body("/publish/release"), repo.stage(), repo.attempts()], [1, [{"runId": "run1", "reason": "bot-id"}], "stage=bot-id\n", 0],
+            eq([code, cx.body("/publish/release"), repo.stage(), repo.attempts()], [1, [{"runId": "run1", "ghRunId": "77", "reason": "bot-id"}], "stage=bot-id\n", 0],
                "%s: released with reason bot-id, nothing pushed" % what)
             close(cx, gh)
         stolen = []
@@ -538,7 +554,7 @@ try:
         os.makedirs(inside)
         code, _, _, err = run(repo, cx, gh, env={"TMPDIR": inside})
         eq([code, cx.body("/publish/release"), repo.stage(), "the temp directory is inside the repo" in err, os.listdir(inside)],
-           [1, [{"runId": "run1", "reason": "merge"}], "stage=merge\n", True, []], "released with reason merge, and nothing left inside")
+           [1, [{"runId": "run1", "ghRunId": "77", "reason": "merge"}], "stage=merge\n", True, []], "released with reason merge, and nothing left inside")
         close(cx, gh)
 
     with section("Pages never building the commit: one build requested, then a failure at pages after the wait, and no release"):
@@ -562,7 +578,7 @@ try:
         eq([code, summary["pushAttempts"], is_ancestor(repo, human), post["id"] in origin_ids(repo)], [0, 2, True, True],
            "exit 0 on the second push, with the human commit kept under the story")
         eq([cx.paths, cx.body("/publish/pushed")], [["/publish/claim", "/publish/pushed", "/publish/built"],
-                                                    [{"runId": "run1", "sha": head, "noChange": False}]], "pushed reports the new head of main")
+                                                    [{"runId": "run1", "ghRunId": "77", "sha": head, "noChange": False}]], "pushed reports the new head of main")
         source = open(os.path.join(ROOT, "scripts", "publish-approved.py"), encoding="utf-8").read()
         eq(["--force" in source, '"+HEAD' in source, "+refs/" in source], [False, False, False], "and the script never forces a push")
         close(cx, gh)
@@ -591,7 +607,7 @@ try:
         code, summary, _, _ = run(repo, cx, gh)
         ids = origin_ids(repo)
         eq([code, cx.body("/publish/conflict"), summary["conflict"], summary["added"], summary["pushAttempts"]],
-           [0, [{"runId": "run1", "storyIds": [collide["id"]]}], [collide["id"]], [plain["id"]], 2],
+           [0, [{"runId": "run1", "ghRunId": "77", "storyIds": [collide["id"]]}], [collide["id"]], [plain["id"]], 2],
            "the collision is sent back once, and the pass after the reset merges only the other story")
         message = repo.git("--git-dir", repo.origin, "log", "-1", "--format=%B", "main")
         eq([collide["id"] in ids, plain["id"] in ids, is_ancestor(repo, removal), message.splitlines()[0], collide["id"] in message],
@@ -602,7 +618,7 @@ try:
         repo, cx, gh = world([claimed(story("dry-fails"), "0" * 64)], refuse=("/publish/conflict",))
         code, _, _, _ = run(repo, cx, gh, dry=True, env={"APP_TOKEN": "", "GITHUB_TOKEN": ""})
         eq([code, cx.paths, cx.body("/publish/release"), repo.stage(), gh.calls, repo.origin_main() == repo.initial],
-           [1, ["/publish/claim", "/publish/conflict", "/publish/release"], [{"runId": "run1", "reason": "dry-run"}], "stage=conflict\n", [], True],
+           [1, ["/publish/claim", "/publish/conflict", "/publish/release"], [{"runId": "run1", "ghRunId": "77", "reason": "dry-run"}], "stage=conflict\n", [], True],
            "/publish/conflict refused: exit 1, stage conflict for the issue step, released with reason dry-run")
         close(cx, gh)
         repo, cx, gh = world([claimed(story("dry-guard"))])
@@ -610,7 +626,7 @@ try:
             fh.write("x\n")
         code, _, _, _ = run(repo, cx, gh, dry=True, env={"APP_TOKEN": "", "GITHUB_TOKEN": ""})
         eq([code, cx.paths, cx.body("/publish/release"), repo.stage()],
-           [1, ["/publish/claim", "/publish/release"], [{"runId": "run1", "reason": "dry-run"}], "stage=diff-guard\n"],
+           [1, ["/publish/claim", "/publish/release"], [{"runId": "run1", "ghRunId": "77", "reason": "dry-run"}], "stage=diff-guard\n"],
            "the diff guard on a dry run: exit 1 at diff-guard, released with reason dry-run")
         close(cx, gh)
 
@@ -619,7 +635,7 @@ try:
         repo, cx, gh = world([claimed(existing)])
         code, summary, _, _ = run(repo, cx, gh, dry=True, env={"APP_TOKEN": "", "GITHUB_TOKEN": ""})
         eq([code, cx.paths, cx.body("/publish/release"), gh.calls, repo.origin_main() == repo.initial],
-           [0, ["/publish/claim", "/publish/release"], [{"runId": "run1", "reason": "dry-run"}], [], True], "released as dry-run, nothing reported pushed")
+           [0, ["/publish/claim", "/publish/release"], [{"runId": "run1", "ghRunId": "77", "reason": "dry-run"}], [], True], "released as dry-run, nothing reported pushed")
         eq([summary.get(k) for k in ("identical", "added", "noChange", "sha", "diffStat")], [[existing["id"]], [], False, None, []],
            "the summary: the one identical id, and an empty diff stat")
         close(cx, gh)

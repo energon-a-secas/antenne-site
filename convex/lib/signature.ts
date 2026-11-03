@@ -161,3 +161,25 @@ export async function verifyRequest(headers: HeaderSource, path: string, rawBody
   const valid = await verifySignature(key === null ? STAND_IN : key.secret, signingText(keyId, timestamp, path, rawBody), signature);
   return key !== null && fresh && valid ? key : null;
 }
+
+function hex(bytes: Uint8Array<ArrayBuffer>): string {
+  let out = "";
+  for (const b of bytes) out += b.toString(16).padStart(2, "0");
+  return out;
+}
+
+/**
+ * What a write route remembers of a request verifyRequest accepted, so the
+ * same request sent again is refused (review F17, convex/lib/replay.ts): hex
+ * SHA-256 of "<keyId>.<timestamp>.<signature bytes as hex>". The signature is
+ * decoded first because base64 spells the same bytes more than one way (atob
+ * ignores the unused low bits of the last character before the padding), and
+ * a replay respelled that way still verifies. Null when the signature does
+ * not decode, which a verified request never is.
+ */
+export async function requestDigest(headers: HeaderSource): Promise<string | null> {
+  const mac = base64ToBytes(headers.get(SIGNATURE_HEADER) ?? "");
+  if (mac === null) return null;
+  const text = `${headers.get(KEY_HEADER) ?? ""}.${headers.get(TIMESTAMP_HEADER) ?? ""}.${hex(mac)}`;
+  return hex(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text))));
+}

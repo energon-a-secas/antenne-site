@@ -2,6 +2,7 @@ import { internalMutation, internalQuery } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { v } from "convex/values";
 import { machineCaller } from "./lib/access.ts";
+import { once } from "./lib/replay.ts";
 import { fail } from "./lib/result.ts";
 import { parseJsonObject } from "./lib/routes.ts";
 import { ingestCore, meterCore, statusCore } from "./lib/submitCore.ts";
@@ -16,9 +17,13 @@ import type { MachineEnv } from "./lib/submitCore.ts";
 // scopes. Nothing here reads a token: getUserIdentity has no part in a
 // machine request. The body arrives as the exact text that was signed and is
 // parsed here, so a client's JSON never has to pass as a Convex value.
+//
+// ingest is a write, so it answers each signed request once
+// (convex/lib/replay.ts): the same request sent again is refused replayed,
+// with no draft changed and no quota spent. status and meter are not.
 
 /** Every machine internal function takes these: routes.ts MachineArgs. */
-const machineArgs = { keyId: v.string(), scopes: v.array(v.string()), path: v.string(), body: v.string() };
+const machineArgs = { keyId: v.string(), scopes: v.array(v.string()), path: v.string(), body: v.string(), digest: v.string() };
 
 function machineEnv(): MachineEnv {
   return {
@@ -37,9 +42,9 @@ export const ingest = internalMutation({
   handler: async (ctx, args) => {
     const body = parseJsonObject(args.body);
     if (body === null) return fail("malformed", "The body is not the JSON object this route takes.");
-    const caller = machineCaller(args.keyId, args.scopes);
+    const [caller, now] = [machineCaller(args.keyId, args.scopes), Date.now()];
     // ingestCore also answers a links intent for each created or updated draft.
-    const { result, intents } = await ingestCore(ctx.db, caller, body, Date.now(), machineEnv());
+    const { result, intents } = await once(ctx.db, args.digest, now, () => ingestCore(ctx.db, caller, body, now, machineEnv()));
     for (const intent of intents) if (intent.kind === "links") await ctx.scheduler.runAfter(0, internal.links.check, { draftId: intent.draftId });
     return result;
   },

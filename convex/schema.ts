@@ -122,4 +122,10 @@ export default defineSchema({
   // As vitrina: bucket is "<principal>|<limit name>".
   rateEvents: defineTable({ bucket: v.string(), at: v.number() })
     .index("by_bucket_at", ["bucket", "at"]).index("by_at", ["at"]),
+
+  // One row per signed write request answered, kept for REPLAY_KEEP_MS (review
+  // F17): digest is convex/lib/signature.ts requestDigest, a SHA-256 of the
+  // key id, the timestamp and the signature's bytes, never the body.
+  seenRequests: defineTable({ digest: v.string(), at: v.number() })
+    .index("by_digest", ["digest", "at"]).index("by_at", ["at"]),
 });

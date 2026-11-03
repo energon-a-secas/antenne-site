@@ -108,7 +108,10 @@ async function withEnv(over, fn) {
     Object.assign(process.env, saved);
   }
 }
-const machine = (h, name, body) => mods.publish[name].handler(h.ctx, { keyId: 'gh', scopes: ['publish'], path: `/publish/${name}`, body: typeof body === 'string' ? body : JSON.stringify(body) });
+// Each call is its own signed request, so each gets its own digest (routes.ts computes the real one).
+let signedCalls = 0;
+const nextDigest = () => (signedCalls += 1).toString(16).padStart(64, '0');
+const machine = (h, name, body, digest = nextDigest()) => mods.publish[name].handler(h.ctx, { keyId: 'gh', scopes: ['publish'], path: `/publish/${name}`, body: typeof body === 'string' ? body : JSON.stringify(body), digest });
 
 // ── End to end ──────────────────────────────────────────────────────────────
 await section('wired: approvals schedule publish:dispatch at publishAfter, /submit and recheck schedule links:check, the crons', () => withEnv({}, async () => {
@@ -128,7 +131,7 @@ await section('wired: approvals schedule publish:dispatch at publishAfter, /subm
   await mods.drafts.recheckLinks.handler(ctx, { draftId: a });
   eq(scheduled.at(-1), ['after', 0, 'links:check', { draftId: a }], 'recheckLinks schedules links:check');
   const story = fresh('wired');
-  await mods.submit.ingest.handler(ctx, { keyId: 'local', scopes: ['submit'], path: '/submit', body: JSON.stringify({ stories: [story] }) });
+  await mods.submit.ingest.handler(ctx, { keyId: 'local', scopes: ['submit'], path: '/submit', body: JSON.stringify({ stories: [story] }), digest: nextDigest() });
   const created = db.rows('drafts').find((d) => d.storyId === story.id)._id;
   eq(scheduled.at(-1), ['after', 0, 'links:check', { draftId: created }], '/submit: each created draft gets links:check');
   h.subject = OWNER;
@@ -174,7 +177,7 @@ await section('a claim clears the conflict note: a story sent back, approved aga
   const d = await draft(db, 'resent', due());
   const storyId = get(db, d).storyId;
   const first = await machine(h, 'claim', { runId: null, ghRunId: '5', runUrl: null });
-  await machine(h, 'conflict', { runId: first.runId, storyIds: [storyId] });
+  await machine(h, 'conflict', { runId: first.runId, ghRunId: '5', storyIds: [storyId] });
   eq([first.stories.map((x) => x.storyId), get(db, d).status, get(db, d).note], [[storyId], 'pending', 'conflict'], 'claimed, then sent back: pending, noted');
   await db.patch(first.runId, { state: 'done' });
   const approved = await mods.drafts.approve.handler(ctx, { draftId: d, expectedRev: get(db, d).rev });
@@ -184,11 +187,46 @@ await section('a claim clears the conflict note: a story sent back, approved aga
   const runId = db.rows('publishRuns').at(-1)._id;
   const second = await machine(h, 'claim', { runId, ghRunId: '6', runUrl: null });
   eq([second.stories.map((x) => x.storyId).sort(), get(db, d).status, get(db, d).note, get(db, kept).note], [[storyId, get(db, kept).storyId].sort(), 'publishing', null, 'an owner note'], 'claimed again: the conflict note is gone, any other note stays');
-  await machine(h, 'pushed', { runId, sha: SHA, noChange: false });
+  await machine(h, 'pushed', { runId, ghRunId: '6', sha: SHA, noChange: false });
   const archive = [d, kept].map((id) => ({ storyId: get(db, id).storyId, contentHash: get(db, id).approvedHash }));
   await mods.publish.recordCommit.handler(ctx, { runId, sha: SHA, stories: archive, complete: true });
   await mods.publish.recordLive.handler(ctx, { stories: archive });
   eq([get(db, d).status, get(db, d).note], ['live', null], 'committed, then live, with no send-back chip');
+}));
+
+// ── Review F17: replays and the claiming workflow run, through the wrappers ─
+await section('F17: a signed request sent twice is answered once (409 replayed, even respelled); a requeued run takes calls from its new workflow run only', () => withEnv({}, async () => {
+  const h = harness(await people(world()), OWNER);
+  const { db, ctx } = h;
+  const route = (path) => router.routes.find((r) => r.path === path).handler;
+  const post = async (path, keyId, text, headers = signed(keyId, path, text, Math.floor(Date.now() / 1000))) => {
+    const answer = await route(path).run(ctx, new Request(`https://happy-otter-123.convex.site${path}`, { method: 'POST', headers, body: text }));
+    return [answer.status, (await answer.json()).code ?? 'ok'];
+  };
+  const story = fresh('replayed');
+  const text = JSON.stringify({ stories: [story] });
+  const h1 = signed('local', '/submit', text, Math.floor(Date.now() / 1000));
+  eq([await post('/submit', 'local', text, h1), db.count('seenRequests')], [[200, 'ok'], 1], 'a signed /submit lands, and is remembered');
+  const [drafts, rates] = [JSON.stringify(db.rows('drafts')), db.count('rateEvents')];
+  const sig = h1.get('X-Antenne-Signature');
+  const at = sig.indexOf('=') - 1;
+  const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  const respelled = new Headers(h1);
+  respelled.set('X-Antenne-Signature', sig.slice(0, at) + ALPHABET[ALPHABET.indexOf(sig[at]) ^ 1] + sig.slice(at + 1));
+  eq([await post('/submit', 'local', text, h1), await post('/submit', 'local', text, respelled)], [[409, 'replayed'], [409, 'replayed']], 'the same request again, and again with its signature respelled: 409 replayed');
+  eq([JSON.stringify(db.rows('drafts')) === drafts, db.count('rateEvents'), db.count('seenRequests')], [true, rates, 1], 'no draft changed, no quota spent, nothing recorded');
+  const claim = JSON.stringify({ runId: null, ghRunId: '5', runUrl: null });
+  const c1 = signed('gh', '/publish/claim', claim, Math.floor(Date.now() / 1000));
+  eq(await post('/publish/claim', 'gh', claim, c1), [200, 'ok'], 'a claim that names no run, with nothing due');
+  await draft(db, 'due-later', { ...due(), publishAfter: Date.now() - 1 });
+  eq([await post('/publish/claim', 'gh', claim, c1), db.count('publishRuns')], [[409, 'replayed'], 0], 'replayed once a story is due: refused, and no run takes the story');
+  eq((await mods.submit.ingest.handler(ctx, { keyId: 'local', scopes: ['submit'], path: '/submit', body: text })).code, 'invalid', 'a wrapper handed no digest refuses rather than answer unguarded');
+  const first = await machine(h, 'claim', { runId: null, ghRunId: '5', runUrl: null });
+  await machine(h, 'release', { runId: first.runId, ghRunId: '5', reason: 'build' });
+  eq(get(db, first.runId).state, 'queued', 'GH run 5 claims, fails before its push and releases: the run is requeued');
+  eq((await machine(h, 'claim', { runId: first.runId, ghRunId: '6', runUrl: null })).stories.length, 1, 'GH run 6 claims the requeued run');
+  const late = await machine(h, 'release', { runId: first.runId, ghRunId: '5', reason: 'build' });
+  eq([late.code, late.message, get(db, first.runId).state, get(db, first.runId).attempts], ['status', 'Another workflow run holds this claim.', 'claimed', 1], 'a release that carries GH run 5 is refused: the claim stays GH run 6\'s, no attempt spent');
 }));
 
 // ── follow(): every intent a publish core returns becomes a schedule ────────
@@ -237,7 +275,7 @@ await section('publish.ts follow(): now, retry and reconcile dispatch at runAt; 
 await section('submit.ts hands MACHINE_KEYS to /submit: every configured key\'s pending drafts count toward the cap, not only the caller\'s', () => withEnv({}, async () => {
   const h = harness(world());
   for (let i = 0; i < L.MACHINE_PENDING_MAX; i++) await draft(h.db, `ci-${i}`, { source: 'machine', humanTouched: false, submittedBy: 'key:ci' });
-  const ingest = async () => (await mods.submit.ingest.handler(h.ctx, { keyId: 'local', scopes: ['submit'], path: '/submit', body: JSON.stringify({ stories: [fresh('one-more')] }) })).outcomes.map((o) => o.outcome);
+  const ingest = async () => (await mods.submit.ingest.handler(h.ctx, { keyId: 'local', scopes: ['submit'], path: '/submit', body: JSON.stringify({ stories: [fresh('one-more')] }), digest: nextDigest() })).outcomes.map((o) => o.outcome);
   eq(await ingest(), ['queue-full'], `the ci key holds ${L.MACHINE_PENDING_MAX}: a story from the local key is queue-full`);
   process.env.MACHINE_KEYS = MACHINE_KEYS.split(',').filter((e) => !e.startsWith('ci:')).join(',');
   eq(await ingest(), ['created'], 'with ci no longer configured, its drafts stop counting');
@@ -257,7 +295,7 @@ await section('a dry run after a failed run: its run is trigger dryrun; done, fa
     const dry = get(db, claimed.runId);
     eq([claimed.stories.map((x) => x.storyId), dry.trigger, dry.state, get(db, d).status], [[get(db, d).storyId], 'dryrun', 'claimed', 'publishing'], `${ending}: the dry run claims the due story into a run with trigger dryrun`);
     if (ending === 'stale') await db.patch(dry._id, { claimedAt: Date.now() - L.CLAIM_STALE_MS - 1 });
-    else await machine(h, 'release', { runId: dry._id, reason: ending });
+    else await machine(h, 'release', { runId: dry._id, ghRunId: '8', reason: ending });
     const acted = (await mods.publish.reconcile.handler(ctx, {})).acted;
     eq([get(db, dry._id).state, get(db, d).status, db.count('publishRuns'), dispatches(h)], [ending === 'dry-run' ? 'done' : 'failed', 'approved', 2, 0], `${ending}: the dry run's run ends ${ending === 'dry-run' ? 'done' : 'failed'} and is never queued; the story is approved; no run is dispatched`);
     eq([acted.includes('queued'), (await mods.publish.reconcile.handler(ctx, {})).acted, await lastRun(h)], [false, [], [failed, failed]], `${ending}: reconcile queues nothing, and publish:status and /status name the failed run`);

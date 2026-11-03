@@ -223,6 +223,8 @@ await section('release: publishing back to approved, never a committed draft, ne
   const late = await claimedWorld(1);
   await mach.pushedCore(late.db, GH, { runId: late.runId, sha: SHA, noChange: false }, T0 + 1, ENV);
   await refused(late.db, (x) => mach.releaseCore(x, GH, { runId: late.runId, reason: 'pages' }, T0 + 2, ENV), 'status', 'a release after the push');
+  // F17: a release takes a claimed run only; a queued or dispatched one holds no claim, so a replayed release spends no attempt.
+  for (const [state, id] of [['queued', await run(late.db, 'queued')], ['dispatched', await run(late.db, 'dispatched')]]) await refused(late.db, (x) => mach.releaseCore(x, GH, { runId: id, reason: 'build' }, T0 + 2, ENV), 'status', `a release of a ${state} run`);
   await refused(late.db, (x) => mach.releaseCore(x, GH, { runId: late.runId, reason: 'Not a word' }, T0 + 2, ENV), 'invalid', 'a reason that is not a word');
 });
 
@@ -411,7 +413,7 @@ await section('routes.ts: the five /publish/* rows, publish scope, writes, their
     const a = await machineRequest('POST', path, signed(key, path, body), async () => body, env, T0, async (fn) => { ran.push(fn); return { ok: true }; });
     return [a.status, a.body.code ?? 'ok', ran];
   };
-  const good = { '/publish/claim': { runId: null, ghRunId: '1', runUrl: null }, '/publish/conflict': { runId: 'r', storyIds: [] }, '/publish/pushed': { runId: 'r', sha: SHA, noChange: false }, '/publish/built': { runId: 'r', sha: SHA, pagesStatus: 'built' }, '/publish/release': { runId: 'r', reason: 'dry-run' } };
+  const good = { '/publish/claim': { runId: null, ghRunId: '1', runUrl: null }, '/publish/conflict': { runId: 'r', ghRunId: '1', storyIds: [] }, '/publish/pushed': { runId: 'r', ghRunId: '1', sha: SHA, noChange: false }, '/publish/built': { runId: 'r', ghRunId: '1', sha: SHA, pagesStatus: 'built' }, '/publish/release': { runId: 'r', ghRunId: '1', reason: 'dry-run' } };
   const bad = { '/publish/claim': {}, '/publish/conflict': { runId: 'r', storyIds: 'x' }, '/publish/pushed': { runId: 'r', sha: SHA, noChange: 'no' }, '/publish/built': { runId: 'r', sha: SHA }, '/publish/release': { runId: 1, reason: 'x' } };
   for (const p of PATHS) {
     eq(await pipe(p, 'gh', JSON.stringify(good[p])), [200, 'ok', [`publish:${p.slice(9)}`]], `${p}: the gh key reaches its function`);

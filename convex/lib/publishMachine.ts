@@ -21,11 +21,20 @@ import type { MachineEnv } from "./submitCore.ts";
 // without the publish scope is refused by authorize like any other.
 //
 // Each core runs every check before its first write, in this order: frozen and
-// the scope; the arguments; the run and its state; the key's machine.publish
-// rate; for pushed and built, the run's commit. Draft changes bump rev, so a
-// desk card loaded before one is stale, and write a draftEvents row with ids
-// and hashes, never story text. Only claim answers story text, and only to the
-// publish key.
+// the scope; the arguments; the run and its state, and for every route but
+// claim the workflow run that claimed it; the key's machine.publish rate; for
+// pushed and built, the run's commit. Draft changes bump rev, so a desk card
+// loaded before one is stale, and write a draftEvents row with ids and hashes,
+// never story text. Only claim answers story text, and only to the publish
+// key.
+//
+// Review F17 (2026-11-03): conflict, pushed, built and release carry the
+// ghRunId the claim recorded, null for a run with no GH_RUN_ID, and are
+// refused with status when it is another workflow run's, so a workflow run
+// that lost its claim (or a request replayed from one) cannot report for the
+// run that took it over. release takes a claimed run only, since
+// scripts/publish-approved.py releases only what it claimed. The wrappers in
+// convex/publish.ts also answer each signed request once (convex/lib/replay.ts).
 
 type Reader = GenericDatabaseReader<any>;
 type Db = GenericDatabaseWriter<any>;
@@ -44,15 +53,21 @@ const refuse = (result: Failure): WithPublishIntents => ({ result, intents: [] }
 const format = (field: string): Problem => ({ field, code: "format" });
 const optional = (value: unknown, re: RegExp): boolean => value === undefined || value === null || (typeof value === "string" && re.test(value));
 
-/** The checks every route but claim shares, before any write. */
-async function openRun(db: Reader, caller: Caller, runId: unknown, problems: Problem[], states: readonly string[], now: number, env: MachineEnv): Promise<{ failure: Failure } | { principal: string; run: any }> {
+/**
+ * The checks every route but claim shares, before any write: args.runId names
+ * a run in one of states, and args.ghRunId (absent or null, or digits) is the
+ * ghRunId its claim recorded.
+ */
+async function openRun(db: Reader, caller: Caller, args: Args, problems: Problem[], states: readonly string[], now: number, env: MachineEnv): Promise<{ failure: Failure } | { principal: string; run: any }> {
   const refused = guardWrite(caller, "machine.publish", env);
   if (refused) return { failure: refused };
-  if (typeof runId !== "string") problems.unshift(format("runId"));
+  if (typeof args.runId !== "string") problems.unshift(format("runId"));
+  if (!optional(args.ghRunId, GH_RUN_ID_RE)) problems.push(format("ghRunId"));
   if (problems.length) return { failure: invalid(problems) };
-  const run = await runById(db, runId);
+  const run = await runById(db, args.runId);
   if (run === null) return { failure: fail("not-found", "No such publish run.") };
   if (!states.includes(run.state)) return { failure: fail("status", `This run is ${run.state}.`, { state: run.state }) };
+  if ((args.ghRunId ?? null) !== (run.ghRunId ?? null)) return { failure: fail("status", "Another workflow run holds this claim.", { state: run.state }) };
   const principal = principalOf(caller as Machine);
   const limited = await refuseIfLimited(db, principal, "machine.publish", now, RATE_WHAT);
   if (limited) return { failure: limited };
@@ -136,9 +151,9 @@ export async function claimCore(db: Db, caller: Caller, args: Args, now: number,
 }
 
 /**
- * POST /publish/conflict { runId, storyIds }: stories the merge could not add
- * as approved (a different story under the same id, a hash that no longer
- * matches, a story the archive refuses) go back to pending with note
+ * POST /publish/conflict { runId, ghRunId, storyIds }: stories the merge
+ * could not add as approved (a different story under the same id, a hash that
+ * no longer matches, a story the archive refuses) go back to pending with note
  * "conflict" and their approval cleared. Only drafts this claimed run holds.
  */
 export async function conflictCore(db: Db, caller: Caller, args: Args, now: number, env: MachineEnv): Promise<WithPublishIntents> {
@@ -147,7 +162,7 @@ export async function conflictCore(db: Db, caller: Caller, args: Args, now: numb
   if (!Array.isArray(ids)) problems.push(format("storyIds"));
   else if (ids.length > CLAIM_MAX) problems.push({ field: "storyIds", code: "too-many" });
   else ids.forEach((id, i) => { if (typeof id !== "string" || !STORY_ID_RE.test(id)) problems.push(format(`storyIds[${i}]`)); });
-  const opened = await openRun(db, caller, args.runId, problems, ["claimed"], now, env);
+  const opened = await openRun(db, caller, args, problems, ["claimed"], now, env);
   if ("failure" in opened) return refuse(opened.failure);
   const { principal, run } = opened;
   const left = new Set<string>(Array.isArray(run.storyIds) ? run.storyIds : []);
@@ -164,12 +179,12 @@ export async function conflictCore(db: Db, caller: Caller, args: Args, now: numb
   return { result: done(), intents: [] };
 }
 
-/** POST /publish/pushed { runId, sha, noChange }: the commit on main (HEAD when nothing was added); verifyCommit is scheduled. */
+/** POST /publish/pushed { runId, ghRunId, sha, noChange }: the commit on main (HEAD when nothing was added); verifyCommit is scheduled. */
 export async function pushedCore(db: Db, caller: Caller, args: Args, now: number, env: MachineEnv): Promise<WithPublishIntents> {
   const problems: Problem[] = [];
   if (typeof args.sha !== "string" || !SHA_RE.test(args.sha)) problems.push(format("sha"));
   if (typeof args.noChange !== "boolean") problems.push(format("noChange"));
-  const opened = await openRun(db, caller, args.runId, problems, ["claimed", "pushed"], now, env);
+  const opened = await openRun(db, caller, args, problems, ["claimed", "pushed"], now, env);
   if ("failure" in opened) return refuse(opened.failure);
   const { principal, run } = opened;
   const sha = args.sha as string;
@@ -181,15 +196,15 @@ export async function pushedCore(db: Db, caller: Caller, args: Args, now: number
 }
 
 /**
- * POST /publish/built { runId, sha, pagesStatus }: Pages built the commit or a
- * descendant. sha is the commit the run reported as pushed, and no other. done
- * once every claimed story is committed.
+ * POST /publish/built { runId, ghRunId, sha, pagesStatus }: Pages built the
+ * commit or a descendant. sha is the commit the run reported as pushed, and no
+ * other. done once every claimed story is committed.
  */
 export async function builtCore(db: Db, caller: Caller, args: Args, now: number, env: MachineEnv): Promise<WithPublishIntents> {
   const problems: Problem[] = [];
   if (typeof args.sha !== "string" || !SHA_RE.test(args.sha)) problems.push(format("sha"));
   if (args.pagesStatus !== "built") problems.push(format("pagesStatus"));
-  const opened = await openRun(db, caller, args.runId, problems, ["pushed", "built"], now, env);
+  const opened = await openRun(db, caller, args, problems, ["pushed", "built"], now, env);
   if ("failure" in opened) return refuse(opened.failure);
   const { principal, run } = opened;
   if (run.commitSha !== args.sha) return refuse(fail("status", "This run pushed another commit.", { state: run.state }));
@@ -204,16 +219,18 @@ export async function builtCore(db: Db, caller: Caller, args: Args, now: number,
 }
 
 /**
- * POST /publish/release { runId, reason }: before a push only. The run's
- * publishing drafts go back to approved; a committed or live one is never
- * touched. A dry run's release finishes the run as done; any other reason
- * spends an attempt, and reconcile dispatches the requeued run again, except
- * a run with trigger dryrun, which retryOrFail fails rather than requeue.
+ * POST /publish/release { runId, ghRunId, reason }: a claimed run only, so
+ * before a push, and never a queued or dispatched run, which holds no claim
+ * to give back. The run's publishing drafts go back to approved; a committed
+ * or live one is never touched. A dry run's release finishes the run as done;
+ * any other reason spends an attempt, and reconcile dispatches the requeued
+ * run again, except a run with trigger dryrun, which retryOrFail fails rather
+ * than requeue.
  */
 export async function releaseCore(db: Db, caller: Caller, args: Args, now: number, env: MachineEnv): Promise<WithPublishIntents> {
   const problems: Problem[] = [];
   if (typeof args.reason !== "string" || !REASON_RE.test(args.reason)) problems.push(format("reason"));
-  const opened = await openRun(db, caller, args.runId, problems, ["queued", "dispatched", "claimed"], now, env);
+  const opened = await openRun(db, caller, args, problems, ["claimed"], now, env);
   if ("failure" in opened) return refuse(opened.failure);
   const { principal, run } = opened;
   const reason = args.reason as string;

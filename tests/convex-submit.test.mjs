@@ -147,7 +147,7 @@ const brief = (r) => [r.status, r.body.code ?? 'ok', r.reads, r.calls];
 await section('routes.ts: each status code, the body read once, and 401 alike for every way a signature fails', async () => {
   const ok = await pipe();
   eq(brief(ok), [200, 'ok', 1, ['submit:ingest']], '/submit: 200, one read, the ingest mutation');
-  eq(ok.args[0], { keyId: 'local', scopes: ['submit', 'status'], path: '/submit', body: JSON.stringify({ stories: [STORY] }) }, 'the verified key and the signed text are handed on');
+  eq({ ...ok.args[0], digest: /^[0-9a-f]{64}$/.test(ok.args[0].digest) }, { keyId: 'local', scopes: ['submit', 'status'], path: '/submit', body: JSON.stringify({ stories: [STORY] }), digest: true }, 'the verified key, the signed text and the request\'s digest are handed on');
   eq(brief(await pipe({ path: '/status', key: 'watch', body: '{}' })), [200, 'ok', 1, ['submit:meter', 'submit:status']], '/status: metered, then the status query');
   eq(brief(await pipe({ path: '/nope' })), [404, 'not-found', 0, []], 'an unknown path is 404, read nothing');
   eq(brief(await pipe({ method: 'GET' })), [405, 'method', 0, []], 'GET is 405');
@@ -209,7 +209,7 @@ const T0 = Date.UTC(2026, 8, 15, 12);
 const OWNER = 'user_owner';
 const REVIEWER = 'user_reviewer';
 const ENV = Object.freeze({ DESK_OWNERS: OWNER });
-const TABLES = ['members', 'accessRequests', 'drafts', 'draftEvents', 'publishRuns', 'publishedIds', 'settings', 'rateEvents'];
+const TABLES = ['members', 'accessRequests', 'drafts', 'draftEvents', 'publishRuns', 'publishedIds', 'settings', 'rateEvents', 'seenRequests'];
 const LOCAL = access.machineCaller('local', ['submit', 'status']);
 const byId = (db, id) => db.rows('drafts').find((d) => d.storyId === id);
 async function world() {
@@ -467,7 +467,7 @@ await section('convex/http.ts and convex/submit.ts wired end to end: a signed re
     const body = await st.json();
     eq([st.status, body.counts.pending, body.tokenExpires, textKeys(body)], [200, 1, '2027-01-31', []], '/status answers through the query, with the env the wrapper read');
     eq(used, ['mutation submit:ingest', 'mutation submit:meter', 'query submit:status'], 'runMutation for ingest and meter, runQuery for status; getUserIdentity never');
-    const narrow = { keyId: 'watch', scopes: ['status'], path: '/submit', body: JSON.stringify({ stories: [live] }) };
+    const narrow = { keyId: 'watch', scopes: ['status'], path: '/submit', body: JSON.stringify({ stories: [live] }), digest: 'd'.repeat(64) };
     const direct = { db, auth, scheduler };
     eq([(await fns.ingest.handler(direct, narrow)).code, (await fns.status.handler(direct, { ...narrow, scopes: ['submit'] })).code, (await fns.ingest.handler(direct, { ...narrow, scopes: ['submit'], body: '[]' })).code],
       ['forbidden', 'forbidden', 'malformed'], 'the wrappers act as exactly the scopes handed to them, and parse the body text themselves');
