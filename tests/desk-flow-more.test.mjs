@@ -21,6 +21,7 @@ import {
   $, ASKER, BREAK, EDITOR, MIN, OWNER, REVIEWER, STRANGER, SUBMITTER, all, btn, checker, click, contentHash, focus, hold,
   intervals, names, row, sent, server, settle, start, stop, world,
 } from './support/deskflow.mjs';
+import { LIMITS } from '../convex/lib/limits.ts';
 import { runRow } from '../convex/lib/publishCore.ts';
 import * as lanesMod from '../js/desk-lanes.js';
 import * as peopleMod from '../js/desk-people.js';
@@ -327,6 +328,21 @@ await section('the access request limit is worded as a daily limit, with the wai
   await start(STRANGER);
   await click($('deskAccount').querySelector('form button[type="submit"]'));
   eq($('deskNotice').textContent, 'At most 3 access requests a day. Try again in 23 hours.', 'a fourth request in a day is told so, not about the last hour');
+});
+
+await section('Check links again past its own hourly limit says so, with the number limits.ts holds', async () => {
+  const ids = await world();
+  const { max } = LIMITS['draft.recheck'];
+  // Oldest first, 50.5 minutes ago: the wait is 9.5 minutes less the time the click takes, so it reads 10 minutes for the first 30 s.
+  for (let i = 0; i < max; i += 1) await server.db.insert('rateEvents', { bucket: `${EDITOR}|draft.recheck`, at: Date.now() - 50.5 * MIN + i });
+  await start(EDITOR);
+  const from = server.calls.length;
+  await click(btn('recheck', ids.own));
+  eq(names(from).includes('drafts:recheckLinks'), true, 'Check links again asks the server');
+  eq($('deskNotice').textContent, `At most ${max} link checks an hour. Try again in 10 minutes.`, 'and the refusal names the link check limit and the wait, not desk changes in general');
+  eq(server.db.rows('rateEvents').filter((r) => r.bucket === `${EDITOR}|draft.write`).length, 0, 'it spent nothing of the editor\'s draft.write window');
+  await click(btn('take', ids.plain));
+  eq(server.db.rows('drafts').find((d) => d._id === ids.plain).assignee, EDITOR, 'so the same editor can still take a story');
 });
 
 await section('the People panel empties when the role goes, and nothing asked for before then draws it again', async () => {

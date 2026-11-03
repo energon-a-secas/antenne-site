@@ -282,6 +282,7 @@ no install, all run by `make validate`:
 | `convex-access`, `convex-drafts`, `convex-members`, `convex-contract` | Roles, the draft cores, people and settings, and the contract rules no behaviour test can see (limits stated literally, every public function resolving its caller, `desk.html`'s CSP pinned to the contract) |
 | `convex-submit`, `test_sign.py`, `test_submit_drafts.py` | The signed routes, `tests/sign-vectors.json` shared by the TypeScript verifier and the Python signer, and the submit client |
 | `convex-publish`, `convex-publish-wired`, `test_publish_approved.py` | The publish run state machine and routes, the wrappers end to end, and `publish-approved.py` against a fake Convex and a fake GitHub in a throwaway git repo (plus the owner-step make targets and `desk_smoke.py --dry-run`) |
+| `convex-links` | Review F24: "Check links again" counted in `draft.recheck`, its own bucket of 20 an hour per person (not per draft), and never in `draft.write` |
 | `convex-replay` | Review F17: the digest of a signed request (the same for a signature respelled in base64), the store that answers each signed write request once, and the workflow run every `/publish/*` call after the claim must come from |
 | `desk-api`, `desk-publish`, `desk-flow`, `desk-flow-more`, `desk-escape` | The desk: its Convex surface, the status bar, the whole page end to end, and story text staying text (breakouts in a draft's title, summary, body and links through the card, the editor and New story) |
 

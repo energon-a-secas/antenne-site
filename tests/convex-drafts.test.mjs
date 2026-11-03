@@ -339,6 +339,7 @@ await section('withdraw, spike, reopen, take, assign and recheckLinks', async ()
   db.resetWrites();
   const again = await recheckLinksCore(db, submitter, { draftId: c }, T0, ENV);
   eq([again.result.ok, again.intent, db.writes()], [true, { kind: 'links', draftId: c }, 1], 'recheckLinks writes only its rate row and hands back a links intent');
+  eq([db.rows('rateEvents').at(-1).bucket, db.rows('rateEvents').filter((r) => r.bucket.endsWith('|draft.recheck')).length], [`${SUBMITTER}|draft.recheck`, 1], 'and that row is in the submitter\'s draft.recheck bucket, the only one there');
 });
 
 await section('a reviewer spikes, or asks for a link check on, only a story they hold or nobody holds', async () => {
@@ -421,12 +422,13 @@ await section('drafts: 600 changes an hour per account, refused in every core th
     'drafts:spike': () => spikeCore(db, editor, { draftId: ids.spike, ...one }, now, ENV),
     'drafts:withdraw': () => withdrawCore(db, editor, { draftId: ids.withdraw, ...one }, now, ENV),
     'drafts:reopen': () => reopenCore(db, editor, { draftId: ids.reopen, ...one }, now, ENV),
-    'drafts:recheckLinks': () => recheckLinksCore(db, editor, { draftId: ids.check }, now, ENV),
   };
   const waits = [];
   for (const [name, run] of Object.entries(calls)) waits.push((await refused(db, run, 'rate-limited', `the 601st change, ${name}`)).retryAfterMs);
   // The first change (at T0) still counts at T0 + HOUR, so the window has room one millisecond later.
   eq([...new Set(waits)], [HOUR - 599], 'each refusal names the wait until the first change leaves the window');
+  const check = await recheckLinksCore(db, editor, { draftId: ids.check }, now, ENV);
+  eq([check.result.ok, check.intent], [true, { kind: 'links', draftId: ids.check }], 'drafts:recheckLinks changes no draft and spends draft.recheck, so a full draft.write window does not refuse it');
   eq((await takeCore(db, await as(db, REVIEWER), { draftId: ids.take, ...one }, now, ENV)).ok, true, 'another account is not affected');
   eq((await submitCore(db, editor, { post: post('fresh') }, now, ENV)).ok, true, 'and drafts:submit counts in its own window');
   const reopen = now + waits[0];

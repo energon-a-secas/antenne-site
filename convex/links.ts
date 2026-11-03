@@ -7,8 +7,10 @@ import { linkTargetCore, recordLinksCore } from "./lib/publishRecord.ts";
 import type { MachineEnv } from "./lib/submitCore.ts";
 
 // links:check and links:record (docs/plans/2026-09-15-antenne-desk.md section
-// 6.1). A link check is scheduled when a draft is submitted or updated by
-// /submit and when someone asks drafts:recheckLinks. Each link gets HEAD, then
+// 6.1). A link check is scheduled when drafts:submit or /submit creates a
+// draft or /submit updates one, when drafts:edit changes its set of link urls,
+// and when someone asks drafts:recheckLinks (at most 20 an hour per person,
+// LIMITS["draft.recheck"] in convex/lib/limits.ts). Each link gets HEAD, then
 // GET on 405, 8 s each, redirects followed; only a neorgon.com or
 // *.neorgon.com link answering 404 or 410, or whose name does not resolve,
 // blocks approval. The rules are in convex/lib/publishFetch.ts checkLink and

@@ -130,6 +130,10 @@ await section('wired: approvals schedule publish:dispatch at publishAfter, /subm
   eq([db.count('publishRuns'), get(db, runId).followUp], [1, true], 'approveMany during it: the same run, followUp');
   await mods.drafts.recheckLinks.handler(ctx, { draftId: a });
   eq(scheduled.at(-1), ['after', 0, 'links:check', { draftId: a }], 'recheckLinks schedules links:check');
+  for (let i = 0; i < L.LIMITS['draft.recheck'].max; i++) await db.insert('rateEvents', { bucket: `${EDITOR}|draft.recheck`, at: Date.now() - 1000 });
+  const before = scheduled.length;
+  const capped = await mods.drafts.recheckLinks.handler(ctx, { draftId: a });
+  eq([capped.ok, capped.code, scheduled.length - before], [false, 'rate-limited', 0], 'a recheck past the draft.recheck window is refused and schedules no links:check');
   const story = fresh('wired');
   await mods.submit.ingest.handler(ctx, { keyId: 'local', scopes: ['submit'], path: '/submit', body: JSON.stringify({ stories: [story] }), digest: nextDigest() });
   const created = db.rows('drafts').find((d) => d.storyId === story.id)._id;

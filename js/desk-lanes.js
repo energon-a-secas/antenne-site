@@ -26,6 +26,8 @@ const ASSIGN_WORDS = Object.freeze({
   'bad-subject': 'That person can no longer hold stories. The desk reloaded the list: pick someone else.',
   'bad-role': 'Only a reviewer, an editor or an owner can hold a story.',
 });
+// LIMITS["draft.recheck"] in convex/lib/limits.ts; tests/desk-flow-more.test.mjs holds the two to one number.
+const RECHECK_WORDS = Object.freeze({ 'rate-limited': 'At most 20 link checks an hour.' });
 const pending = (d) => d.status === 'pending';
 
 /**
@@ -357,7 +359,7 @@ async function onClick(e) {
   if (act === 'reopen') return mutate(FN.drafts.reopen, args, 'Reopened "' + title + '".');
   if (act === 'spike') return mutate(FN.drafts.spike, args, 'Spiked "' + title + '".');
   if (act === 'override') return mutate(FN.drafts.overrideLinks, args, 'Overrode the link check on "' + title + '".');
-  if (act === 'recheck') return mutate(FN.drafts.recheckLinks, { draftId }, 'Checking the links on "' + title + '" again.');
+  if (act === 'recheck') return mutate(FN.drafts.recheckLinks, { draftId }, 'Checking the links on "' + title + '" again.', RECHECK_WORDS);
   if (act === 'assign-go') return assign(d, expectedRev);
   return undefined;
 }

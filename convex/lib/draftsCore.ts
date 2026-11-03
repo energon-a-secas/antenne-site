@@ -28,6 +28,7 @@ export const STATUSES: readonly string[] = Object.freeze(["pending", "approved",
 const POST_FIELDS: readonly string[] = Object.freeze(["id", "date", "kind", "site", "title", "summary", "body", "links", "tags"]);
 const UNAPPROVED = Object.freeze({ status: "pending", approvedHash: null, approvedBy: null, approvedAt: null, publishAfter: null });
 const WRITES = "desk changes this hour";
+const RECHECKS = "link checks this hour";
 
 /** What a wrapper schedules after the mutation commits. publish-bridge wires both kinds. */
 export type Intent = { kind: "publish"; runAt: number } | { kind: "links"; draftId: string };
@@ -423,7 +424,9 @@ export function assignCore(db: Db, caller: Caller, args: DraftArgs & { assignee?
 /**
  * Asks for a fresh link check. The permission is draft.edit's, with spike's
  * view (a reviewer on their own or unassigned stories, a submitter on theirs).
- * It changes no draft, so it writes no event; the intent names the draft.
+ * It changes no draft, so it writes no event; the intent names the draft. It
+ * counts in draft.recheck, its own small bucket, and not in draft.write: every
+ * call sends links:check out to the story's hosts (convex/lib/limits.ts).
  */
 export async function recheckLinksCore(db: Db, caller: Caller, args: { draftId?: unknown }, now: number, env: DeskEnv): Promise<WithIntent> {
   const refused = guardWrite(caller, "draft.edit", env);
@@ -431,8 +434,8 @@ export async function recheckLinksCore(db: Db, caller: Caller, args: { draftId?:
   const human = caller as Human;
   const opened = await openDraft(db, human, args, ["pending", "approved"], [reviewerHoldsOrFree], false);
   if ("failure" in opened) return { result: opened.failure, intent: null };
-  const limited = await refuseIfLimited(db, human.subject, "draft.write", now, WRITES);
+  const limited = await refuseIfLimited(db, human.subject, "draft.recheck", now, RECHECKS);
   if (limited) return { result: limited, intent: null };
-  await recordRate(db, human.subject, "draft.write", now);
+  await recordRate(db, human.subject, "draft.recheck", now);
   return { result: done(), intent: { kind: "links", draftId: opened.draft._id } };
 }

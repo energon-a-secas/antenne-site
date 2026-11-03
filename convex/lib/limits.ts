@@ -11,16 +11,27 @@ const MINUTE = 60 * SECOND;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
 
-export type LimitName = "draft.submit" | "draft.write" | "access.request" | "machine.submit" | "machine.status" | "machine.publish";
+export type LimitName = "draft.submit" | "draft.write" | "draft.recheck" | "access.request" | "machine.submit" | "machine.status" | "machine.publish";
 
 /**
  * Sliding windows over rateEvents. A human bucket is "<clerk subject>|<name>"
  * and a machine bucket "key:<keyId>|<name>", never anything the caller sent.
  * draft.write counts one per call, whatever the call carries.
+ *
+ * draft.recheck counts "Check links again" (drafts:recheckLinks) and nothing
+ * else, and that call spends no draft.write. Each one has links:check request
+ * up to six links on whatever https hosts a desk story names, and the status
+ * each answers is shown back on the desk, so its bucket is sized to cap those
+ * requests rather than taken out of draft.write's 600 (review F24, the part of
+ * queue #130 that needs no owner decision): at most 20 checks, so 120 links,
+ * an hour per person. An edit that changes a story's set of link urls also
+ * schedules links:check and counts in draft.write only; whether it should
+ * count here too is left to the owner with the rest of #130.
  */
 export const LIMITS: Readonly<Record<LimitName, Readonly<{ max: number; windowMs: number }>>> = Object.freeze({
   "draft.submit": Object.freeze({ max: 30, windowMs: HOUR }),
   "draft.write": Object.freeze({ max: 600, windowMs: HOUR }),
+  "draft.recheck": Object.freeze({ max: 20, windowMs: HOUR }),
   "access.request": Object.freeze({ max: 3, windowMs: DAY }),
   "machine.submit": Object.freeze({ max: 60, windowMs: HOUR }),
   "machine.status": Object.freeze({ max: 120, windowMs: HOUR }),

@@ -59,12 +59,13 @@ await section('the numbers of section 4.4, and of 4.3 and 6.1, as the contract w
   eq(limits.LIMITS, {
     'draft.submit': { max: 30, windowMs: HOUR },
     'draft.write': { max: 600, windowMs: HOUR },
+    'draft.recheck': { max: 20, windowMs: HOUR },
     'access.request': { max: 3, windowMs: DAY },
     'machine.submit': { max: 60, windowMs: HOUR },
     'machine.status': { max: 120, windowMs: HOUR },
     'machine.publish': { max: 120, windowMs: HOUR },
-  }, 'per subject 30 submits and 600 writes an hour and 3 access requests a day; per machine key 60 submits, 120 status and 120 publish calls an hour');
-  eq([...limits.LIMIT_NAMES], ['draft.submit', 'draft.write', 'access.request', 'machine.submit', 'machine.status', 'machine.publish'], 'the six limit names');
+  }, 'per subject 30 submits, 600 writes and 20 link rechecks an hour and 3 access requests a day; per machine key 60 submits, 120 status and 120 publish calls an hour');
+  eq([...limits.LIMIT_NAMES], ['draft.submit', 'draft.write', 'draft.recheck', 'access.request', 'machine.submit', 'machine.status', 'machine.publish'], 'the seven limit names');
   const CAPS = {
     SUBMIT_BATCH_MAX: 12, MACHINE_PENDING_MAX: 40, DESK_PENDING_MAX: 20, REQUESTS_MAX: 50, APPROVE_MANY_MAX: 25, CLAIM_MAX: 25, BODY_MAX_BYTES: 64000,
     SIGNATURE_WINDOW_MS: 300000, PUBLISH_DELAY_DEFAULT_MS: 300000, PUBLISH_DELAY_MAX_MS: 1800000, RUN_MAX_ATTEMPTS: 5,
