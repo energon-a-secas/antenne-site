@@ -76,7 +76,14 @@ export function convexUrlFrom(doc) {
   return url;
 }
 
-/** The pinned client build, one self-contained file on jsDelivr (script-src allows it). */
+/**
+ * The pinned client build, one self-contained file on jsDelivr that imports
+ * nothing else. desk.html's script-src admits only the path of this package
+ * version (https://cdn.jsdelivr.net/npm/convex@1.45.0/), not the whole host,
+ * so a version bump changes both or the client is blocked.
+ * tests/convex-contract.test.mjs fails when they disagree, and
+ * tests/desk-api.test.mjs when loadClient's literal is not this one.
+ */
 export const CLIENT_URL = 'https://cdn.jsdelivr.net/npm/convex@1.45.0/browser/+esm';
 
 const clients = new Map();
