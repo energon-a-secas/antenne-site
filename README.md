@@ -284,7 +284,8 @@ no install, all run by `make validate`:
 | `convex-publish`, `convex-publish-wired`, `test_publish_approved.py` | The publish run state machine and routes, the wrappers end to end, and `publish-approved.py` against a fake Convex and a fake GitHub in a throwaway git repo (plus the owner-step make targets and `desk_smoke.py --dry-run`) |
 | `convex-links` | Review F24: "Check links again" counted in `draft.recheck`, its own bucket of 20 an hour per person (not per draft), and never in `draft.write` |
 | `convex-replay` | Review F17: the digest of a signed request (the same for a signature respelled in base64), the store that answers each signed write request once, and the workflow run every `/publish/*` call after the claim must come from |
-| `desk-api`, `desk-publish`, `desk-flow`, `desk-flow-more`, `desk-escape` | The desk: its Convex surface, the status bar, the whole page end to end, and story text staying text (breakouts in a draft's title, summary, body and links through the card, the editor and New story) |
+| `convex-guards` | Two guards no behaviour test saw: every trigger in `REAL_TRIGGERS` (a failed push run still pauses reconcile behind a dry run, and Retry follows it), and `machinePending`'s reads (a take bounded by the room left, never `collect()`, no read once the room is gone) |
+| `desk-api`, `desk-publish`, `desk-flow`, `desk-flow-more`, `desk-late`, `desk-escape` | The desk: its Convex surface, the status bar, the whole page end to end, answers that arrive after the account or the refresh moved on, and story text staying text (breakouts in a draft's title, summary, body and links through the card, the editor and New story, and in the draft id, rev, site and error code only the server sends) |
 
 The backend tests run the real cores over `tests/support/fakedb.mjs`, an
 in-memory Convex database that parses `convex/schema.ts` and refuses undeclared
@@ -293,7 +294,8 @@ indexes and fields. The desk flow tests run the real `desk.html` in
 against the real `convex/*.ts` wrappers, all set up by
 `tests/support/deskflow.mjs` (`fakeKit(...).switchTo(userId)` switches account,
 `server.fail` makes named functions fail as a dropped connection would). New
-desk cases go in `tests/desk-flow-more.test.mjs`, and escaping cases in
+desk cases go in `tests/desk-flow-more.test.mjs` (a late answer's in
+`tests/desk-late.test.mjs`), and escaping cases in
 `tests/desk-escape.test.mjs`. `tests/convex-submit.test.mjs`,
 `tests/convex-publish.test.mjs` and `tests/convex-drafts.test.mjs` sit within
 twenty lines of the 500-line cap, so a new backend case needs a file of its

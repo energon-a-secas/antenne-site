@@ -52,6 +52,7 @@ validate:
 	@node tests/desk-api.test.mjs
 	@node tests/desk-flow.test.mjs
 	@node tests/desk-flow-more.test.mjs
+	@node tests/desk-late.test.mjs
 	@node tests/desk-escape.test.mjs
 	@node tests/data-archive.test.mjs
 	@node tests/convex-access.test.mjs
@@ -63,6 +64,7 @@ validate:
 	@node tests/convex-publish-wired.test.mjs
 	@node tests/convex-replay.test.mjs
 	@node tests/convex-links.test.mjs
+	@node tests/convex-guards.test.mjs
 	@python3 tests/test_build_feed.py
 	@python3 tests/test_sign.py
 	@python3 tests/test_submit_drafts.py

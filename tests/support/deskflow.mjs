@@ -1,5 +1,6 @@
 // The desk, end to end in node, for tests/desk-flow.test.mjs,
-// tests/desk-flow-more.test.mjs and tests/desk-escape.test.mjs: the real
+// tests/desk-flow-more.test.mjs, tests/desk-late.test.mjs and
+// tests/desk-escape.test.mjs: the real
 // desk.html in ./fakedom.mjs, the real js/desk*.js, and behind the Convex client
 // the real convex/*.ts wrappers over ./fakedb.mjs
 // (docs/plans/2026-09-15-antenne-desk.md section 7). The client
