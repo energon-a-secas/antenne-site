@@ -440,7 +440,14 @@ try:
         site = make_site()
         posts_path = os.path.join(site, "data", "posts.json")
         accented = story(id="2026-09-12-marker-accent", date="2026-09-12", title="MARKER-TITLE café crème")
-        eq(ARCHIVE_TEXT.isascii(), True, "the archive itself is ASCII, so only the merged story can tell the two serializations apart")
+        # The published archive gains non-ASCII stories over time (2026-10-13 was the first), so this
+        # section merges into the ASCII stories of it alone, rather than into data/posts.json as is.
+        base = copy.deepcopy(ARCHIVE)
+        base["posts"] = [p for p in base["posts"] if json.dumps(p, ensure_ascii=False).isascii()]
+        dump_json(posts_path, base)
+        base_text = read_text(posts_path)
+        eq([base_text.isascii(), len(base["posts"]) > 1], [True, True],
+           "the archive the merge starts from is ASCII, so only the merged story can tell the two serializations apart")
         batch = os.path.join(site, "merge.json")
         dump_json(batch, {"stories": [accented]})
         code, out, err = run(site, "--merge", batch, "--today", "2026-09-15")
@@ -450,7 +457,7 @@ try:
         written = read_bytes(posts_path)
         eq(["café crème".encode("utf-8") in written, b"\\u00e9" in written], [True, False],
            "the accented title is on disk as UTF-8 bytes, not as an escape")
-        expected = json.loads(ARCHIVE_TEXT)
+        expected = json.loads(base_text)
         expected["updated"] = "2026-09-15"
         expected["posts"] = sorted(expected["posts"] + [bf.validate_post(accented, "desk")["post"]],
                                    key=lambda p: (p["date"], p["id"]), reverse=True)
