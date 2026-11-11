@@ -440,13 +440,18 @@ try:
         site = make_site()
         posts_path = os.path.join(site, "data", "posts.json")
         accented = story(id="2026-09-12-marker-accent", date="2026-09-12", title="MARKER-TITLE café crème")
-        # The published archive gains non-ASCII stories over time (2026-10-13 was the first), so this
-        # section merges into the ASCII stories of it alone, rather than into data/posts.json as is.
+        # The archive this merges into is the test's own: three ASCII stories in the published
+        # archive's envelope. data/posts.json gains non-ASCII stories over time (2026-10-13 was the
+        # first, and the cloud drafter has run daily since 2026-11-03), and how many of its stories
+        # happen to be ASCII is not something a serialization test may depend on.
+        plain = [bf.validate_post(story(id=f"2026-09-0{n}-marker-plain-{n}", date=f"2026-09-0{n}",
+                                        title=f"MARKER-TITLE plain {n}"), "desk") for n in (3, 4, 5)]
+        eq([r["ok"] for r in plain], [True, True, True], "the three plain stories are valid posts")
         base = copy.deepcopy(ARCHIVE)
-        base["posts"] = [p for p in base["posts"] if json.dumps(p, ensure_ascii=False).isascii()]
+        base["posts"] = sorted((r["post"] for r in plain), key=lambda p: (p["date"], p["id"]), reverse=True)
         dump_json(posts_path, base)
         base_text = read_text(posts_path)
-        eq([base_text.isascii(), len(base["posts"]) > 1], [True, True],
+        eq([base_text.isascii(), len(base["posts"])], [True, 3],
            "the archive the merge starts from is ASCII, so only the merged story can tell the two serializations apart")
         batch = os.path.join(site, "merge.json")
         dump_json(batch, {"stories": [accented]})
