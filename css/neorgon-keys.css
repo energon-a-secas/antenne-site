@@ -38,6 +38,10 @@
 .nk-fleet::backdrop,
 .nk-store::backdrop { background: rgba(0, 0, 0, .66); backdrop-filter: blur(3px); }
 
+/* Type floor: no reading text here goes under 12px (queue #154). The small
+   sizes are written max(12px, .75rem) so a site whose root runs small still
+   lands on 12, and one whose root runs large keeps the rem scaling. */
+
 /* ── ? sheet ───────────────────────────────────────────────── */
 .nk-sheet { width: min(560px, calc(100vw - 32px)); max-height: min(80dvh, 680px); }
 
@@ -62,7 +66,7 @@
 .nk-sheet__body { padding: 14px 18px 18px; overflow-y: auto; }
 .nk-sheet__group {
   margin: 16px 0 8px;
-  font-size: .7rem; font-weight: 700;
+  font-size: max(12px, .75rem); font-weight: 700;
   letter-spacing: .12em; text-transform: uppercase;
   color: var(--nk-dim);
 }
@@ -85,9 +89,9 @@
 .nk-row__key { flex: none; display: flex; align-items: center; gap: 6px; min-width: 62px; }
 .nk-row__label { flex: 1; display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .nk-row__name { font-size: .88rem; color: var(--nk-text); }
-.nk-row__hint { font-size: .74rem; color: var(--nk-dim); }
+.nk-row__hint { font-size: max(12px, .75rem); color: var(--nk-dim); }
 .nk-row__moved {
-  font-size: .62rem; letter-spacing: .08em; text-transform: uppercase;
+  font-size: max(12px, .75rem); letter-spacing: .08em; text-transform: uppercase;
   color: var(--nk-accent);
 }
 .nk-row__actions { flex: none; display: flex; gap: 6px; }
@@ -117,7 +121,7 @@
   padding: 4px 9px;
   border: 1px solid var(--nk-border); border-radius: 6px;
   background: transparent; color: var(--nk-dim);
-  font: inherit; font-size: .74rem; cursor: pointer;
+  font: inherit; font-size: max(12px, .75rem); cursor: pointer;
   transition: color .2s, background .2s, border-color .2s;
 }
 .nk-mini:hover { color: #fff; background: var(--nk-hover); border-color: var(--nk-accent); }
@@ -154,16 +158,16 @@
 .nk-fleet__domain {
   grid-area: domain; justify-self: end;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: .7rem; color: var(--nk-dim);
+  font-size: max(12px, .75rem); color: var(--nk-dim);
 }
 .nk-fleet__desc {
-  grid-area: desc; font-size: .74rem; color: var(--nk-dim);
+  grid-area: desc; font-size: max(12px, .75rem); color: var(--nk-dim);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .nk-fleet__empty { padding: 20px; margin: 0; text-align: center; color: var(--nk-dim); font-size: .84rem; }
 .nk-fleet__hint {
   padding: 9px 18px; border-top: 1px solid var(--nk-hairline);
-  font-size: .72rem; color: var(--nk-dim);
+  font-size: max(12px, .75rem); color: var(--nk-dim);
 }
 
 /* ── M store ───────────────────────────────────────────────── */
@@ -187,11 +191,11 @@
   background: rgba(255, 255, 255, .02);
 }
 .nk-store__name { margin: 0; font-size: .86rem; font-weight: 620; color: #fff; }
-.nk-store__note { margin: 0; flex: 1; font-size: .74rem; color: var(--nk-dim); line-height: 1.5; }
+.nk-store__note { margin: 0; flex: 1; font-size: max(12px, .75rem); color: var(--nk-dim); line-height: 1.5; }
 .nk-store__buy {
   padding: 6px; border: 1px dashed var(--nk-border); border-radius: 6px;
   background: transparent; color: var(--nk-dim);
-  font: inherit; font-size: .72rem; cursor: not-allowed;
+  font: inherit; font-size: max(12px, .75rem); cursor: not-allowed;
 }
 .nk-store__honest {
   margin: 0; padding: 13px 18px;
